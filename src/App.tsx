@@ -1,10 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Toaster } from 'react-hot-toast';
 import { Navbar } from './components/Navbar'
-import { HeroSection } from './components/HeroSection'
-import { FeaturesSection } from './components/Features'
-import { PhilosophySection } from './components/Protocol'
-import { ProtocolSection } from './components/Protocol'
 import { CollectionSection, Footer } from './components/CollectionFooter'
 import { ProductDetail } from './components/ProductDetail'
 import { CheckoutFlow } from './components/CheckoutFlow'
@@ -56,12 +52,8 @@ function App() {
       <CartDrawer />
       <ProductDetail />
       <Navbar />
-      <HeroSection />
       
-      <main>
-        <FeaturesSection />
-        <PhilosophySection />
-        <ProtocolSection />
+      <main className="pt-24 mt-8">
         <CollectionSection />
       </main>
       
