@@ -20,7 +20,7 @@ export const CheckoutFlow = () => {
     const formatPrice = (price: number) => `Rs. ${price.toLocaleString()}`;
 
     // Mock Stripe Authorization
-    const handleAuthorization = () => {
+    const handleAuthorization = async () => {
         setPaymentError('');
         
         // Basic Validation
@@ -34,12 +34,29 @@ export const CheckoutFlow = () => {
         }
 
         setIsProcessing(true);
-        // Simulate network latency (2 seconds)
-        setTimeout(() => {
-            setIsProcessing(false);
-            setStep(3); // Move to Success
-            // Note: In a real app we would clear the cart here, but we'll leave it for visual summary
-        }, 2000);
+        
+        try {
+            // Deduct stock from mainframe
+            for (const item of cart) {
+                // We'd ideally have a dedicated atomic decrement route, but doing a basic PUT here
+                const res = await fetch(`/api/products/${item.id}`);
+                if (res.ok) {
+                    const productData = await res.json();
+                    const newCount = Math.max(0, (productData.inventoryCount || 0) - item.quantity);
+                    await fetch(`/api/products/${item.id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ ...productData, inventoryCount: newCount })
+                    });
+                }
+            }
+        } catch (error) {
+            console.error("Stock deduction failed", error);
+        }
+
+        setIsProcessing(false);
+        setStep(3); // Move to Success
+        // Note: In a real app we would clear the cart here, but we'll leave it for visual summary
     };
 
     // Card formatting utility

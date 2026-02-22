@@ -127,12 +127,19 @@ export const ProductDetail = () => {
                         <div className="mt-auto pt-8">
                             <Button 
                                 onClick={handleAddToCart}
-                                className="w-full h-16 text-lg tracking-wide rounded-2xl shadow-xl shadow-brand-primary/10 hover:shadow-2xl hover:shadow-brand-primary/20 transition-all duration-300 flex items-center justify-center relative overflow-hidden group"
+                                disabled={(product.inventoryCount === 0 || product.inventoryCount == null)}
+                                className={`w-full h-16 text-lg tracking-wide rounded-2xl shadow-xl transition-all duration-300 flex items-center justify-center relative overflow-hidden group ${(product.inventoryCount === 0 || product.inventoryCount == null) ? 'bg-brand-text/10 text-brand-text/40 cursor-not-allowed hover:shadow-none' : 'shadow-brand-primary/10 hover:shadow-2xl hover:shadow-brand-primary/20'}`}
                             >
-                                <span className="relative z-10 transition-transform duration-300 group-hover:-translate-y-8">Add to Bag</span>
-                                <span className="absolute inset-0 flex items-center justify-center translate-y-8 transition-transform duration-300 group-hover:translate-y-0 text-white font-mono text-sm">
-                                    [ Confirm Selection ]
-                                </span>
+                                {(product.inventoryCount === 0 || product.inventoryCount == null) ? (
+                                    <span className="relative z-10">Archive Depleted</span>
+                                ) : (
+                                    <>
+                                        <span className="relative z-10 transition-transform duration-300 group-hover:-translate-y-8">Add to Bag</span>
+                                        <span className="absolute inset-0 flex items-center justify-center translate-y-8 transition-transform duration-300 group-hover:translate-y-0 text-white font-mono text-sm">
+                                            [ Confirm Selection ]
+                                        </span>
+                                    </>
+                                )}
                             </Button>
                             
                             <div className="flex items-center justify-center mt-6 space-x-6 text-xs text-brand-text/40 font-medium">

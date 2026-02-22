@@ -13,9 +13,10 @@ interface ProductData {
     fabricComposition?: string;
     fabric?: string;
     description: string;
-    coverImage?: string;
+    coverImage: string;
     image?: string;
     type?: string;
+    inventoryCount: number;
     isAvailable?: boolean;
 }
 
@@ -35,13 +36,15 @@ export const AdminProducts = () => {
         description: string;
         coverImage: string;
         image?: string;
+        inventoryCount: number;
     }>({
         title: '',
         sku: '',
         price: '',
         fabricComposition: '',
         description: '',
-        coverImage: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?q=80&w=2000&auto=format&fit=crop'
+        coverImage: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?q=80&w=2000&auto=format&fit=crop',
+        inventoryCount: 1,
     });
 
     const fetchProducts = async () => {
@@ -111,7 +114,7 @@ export const AdminProducts = () => {
                 setIsAddModalOpen(false);
                 fetchProducts(); // Refresh list
                 // reset form
-                setFormData({ title: '', sku: '', price: '', fabricComposition: '', description: '', coverImage: formData.coverImage });
+                setFormData({ title: '', sku: '', price: '', fabricComposition: '', description: '', coverImage: formData.coverImage, inventoryCount: 1 });
                 setComponents([{ name: '', measurement: '' }]);
             } else {
                 const err = await res.json();
@@ -210,9 +213,12 @@ export const AdminProducts = () => {
                                     <td className="py-4 px-6 text-sm text-gray-600 truncate max-w-[150px]">{product.fabricComposition || product.fabric || 'Premium Blend'}</td>
                                     <td className="py-4 px-6 text-sm font-medium">Rs. {(product.price || 0).toLocaleString()}</td>
                                     <td className="py-4 px-6 text-center">
-                                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold tracking-wide uppercase ${product.isAvailable !== false ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                                            {product.isAvailable !== false ? 'In Stock' : 'Out of Stock'}
-                                        </span>
+                                        <div className="flex justify-center items-center flex-col gap-1">
+                                            <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold tracking-wide uppercase ${(product.inventoryCount || 0) > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                                {(product.inventoryCount || 0) > 0 ? 'In Stock' : 'Out of Stock'}
+                                            </span>
+                                            <span className="text-xs text-brand-text/50 font-mono">{(product.inventoryCount || 0)} Units</span>
+                                        </div>
                                     </td>
                                     <td className="py-4 px-6 text-right">
                                         <button className="text-gray-400 hover:text-brand-primary transition-colors p-1">
@@ -271,6 +277,10 @@ export const AdminProducts = () => {
                                         <input type="number" value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-mono focus:border-brand-accent outline-none" placeholder="24500" />
                                     </div>
                                     <div>
+                                        <label className="block text-xs font-semibold text-gray-600 mb-1">Stock Quantity</label>
+                                        <input type="number" min="0" value={formData.inventoryCount} onChange={e => setFormData({...formData, inventoryCount: parseInt(e.target.value) || 0})} className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-mono focus:border-brand-accent outline-none" placeholder="10" />
+                                    </div>
+                                    <div className="md:col-span-2">
                                         <label className="block text-xs font-semibold text-gray-600 mb-1">Collection Type</label>
                                         <select className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-brand-accent outline-none">
                                             <option>3-Piece Unstitched</option>

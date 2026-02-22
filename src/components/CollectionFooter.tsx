@@ -45,6 +45,15 @@ export const CollectionSection = () => {
                                     alt={`${product.title || product.name} detail`} 
                                     className="absolute inset-0 w-full h-full object-cover opacity-0 transition-opacity ease-in-out group-hover:opacity-100 scale-105 group-hover:scale-100 duration-500"
                                 />
+
+                                {/* Out of Stock Overlay */}
+                                {(product.inventoryCount === 0 || product.inventoryCount == null) && (
+                                    <div className="absolute inset-0 bg-brand-background/40 backdrop-blur-[2px] z-10 flex items-center justify-center">
+                                        <div className="bg-brand-background px-4 py-2 rounded-full border border-brand-text/10 text-xs font-mono tracking-widest text-brand-text/60 shadow-lg uppercase font-semibold">
+                                            Out of Stock
+                                        </div>
+                                    </div>
+                                )}
                                 
                                 {/* Quick Add overlay */}
                                 <div className="absolute inset-x-0 bottom-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out z-10">
