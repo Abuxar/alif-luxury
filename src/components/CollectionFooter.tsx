@@ -7,11 +7,34 @@ const CATEGORIES = ['All', 'Unstitched', 'Prêt', 'Luxury Formal', 'Accessories'
 
 export const CollectionSection = () => {
     const { setActiveProduct, products, isLoadingProducts } = useStore();
-    const [activeCategory, setActiveCategory] = useState('All');
     
+    // Initialize category from URL query param if present
+    const [activeCategory, setActiveCategory] = useState<{category: string}>(() => {
+        if (typeof window !== 'undefined') {
+            const params = new URLSearchParams(window.location.search);
+            const cat = params.get('category');
+            if (cat && CATEGORIES.includes(cat)) {
+                return { category: cat };
+            }
+        }
+        return { category: 'All' };
+    });
+    
+    const handleCategoryClick = (cat: string) => {
+        setActiveCategory({ category: cat });
+        // Update URL seamless
+        const url = new URL(window.location.href);
+        if (cat === 'All') {
+            url.searchParams.delete('category');
+        } else {
+            url.searchParams.set('category', cat);
+        }
+        window.history.pushState({}, '', url);
+    };
+
     const filteredProducts = useMemo(() => {
-        if (activeCategory === 'All') return products;
-        return products.filter(p => p.category === activeCategory);
+        if (activeCategory.category === 'All') return products;
+        return products.filter(p => p.category === activeCategory.category);
     }, [products, activeCategory]);
 
     return (
@@ -19,7 +42,7 @@ export const CollectionSection = () => {
             <div className="flex flex-col md:flex-row justify-between items-end mb-12 border-b border-brand-text/10 pb-8">
                 <div>
                     <h2 className="text-4xl md:text-5xl font-bold font-sans tracking-tight mb-2">The Archive</h2>
-                    <p className="text-brand-text/70">{activeCategory === 'All' ? 'Volume 01: Midnight Luxe' : `${activeCategory} Collection`}</p>
+                    <p className="text-brand-text/70">{activeCategory.category === 'All' ? 'Volume 01: Midnight Luxe' : `${activeCategory.category} Collection`}</p>
                 </div>
                 <div className="hidden md:flex items-center gap-4 mt-4 md:mt-0">
                      <span className="text-sm text-brand-text/50 font-mono tracking-widest uppercase">{filteredProducts.length} Pieces</span>
@@ -36,11 +59,11 @@ export const CollectionSection = () => {
                             {CATEGORIES.map(cat => (
                                 <li key={cat}>
                                     <button 
-                                        onClick={() => setActiveCategory(cat)}
-                                        className={`text-sm flex items-center justify-between w-full text-left transition-colors ${activeCategory === cat ? 'text-brand-accent font-medium' : 'text-brand-text/70 hover:text-brand-primary'}`}
+                                        onClick={() => handleCategoryClick(cat)}
+                                        className={`text-sm flex items-center justify-between w-full text-left transition-colors ${activeCategory.category === cat ? 'text-brand-accent font-medium' : 'text-brand-text/70 hover:text-brand-primary'}`}
                                     >
                                         <span>{cat}</span>
-                                        {activeCategory === cat && <Check size={14} />}
+                                        {activeCategory.category === cat && <Check size={14} />}
                                     </button>
                                 </li>
                             ))}
