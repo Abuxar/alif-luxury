@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import productRoutes from './routes/productRoutes.js';
 import slideRoutes from './routes/slideRoutes.js';
 import userRoutes from './routes/userRoutes.js';
+import orderRoutes from './routes/orderRoutes.js';
 
 dotenv.config();
 
@@ -53,6 +54,7 @@ app.get('/api/health', (req, res) => {
 app.use('/api/products', productRoutes);
 app.use('/api/slides', slideRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/orders', orderRoutes);
 
 // Export the Express app for Vercel Serverless Functions
 export default app;

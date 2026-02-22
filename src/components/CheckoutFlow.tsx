@@ -5,12 +5,15 @@ import { ArrowLeft, CheckCircle2, CreditCard, User, Truck, Loader2 } from 'lucid
 
 export const CheckoutFlow = () => {
     const { cart } = useStore();
-    const [step, setStep] = useState<1 | 2 | 3>(1);
     const [isProcessing, setIsProcessing] = useState(false);
     const [paymentError, setPaymentError] = useState('');
     
     // Form States
-    const [cardDetails, setCardDetails] = useState({ number: '', name: '', expiry: '', cvc: '' });
+    const [cardDetails, setCardDetails] = useState({ name: '' });
+    
+    // URL State for Stripe Redirects
+    const isSuccess = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('success') === 'true';
+    const isCanceled = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('canceled') === 'true';
     
     const [orderId] = useState(() => Math.floor(Math.random() * 900000) + 100000);
     const subtotal = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
@@ -19,54 +22,54 @@ export const CheckoutFlow = () => {
 
     const formatPrice = (price: number) => `Rs. ${price.toLocaleString()}`;
 
-    // Mock Stripe Authorization
-    const handleAuthorization = async () => {
+    // Stripe Checkout Authorization
+    const handleAuthorization = async (e: React.FormEvent) => {
+        e.preventDefault();
         setPaymentError('');
         
-        // Basic Validation
-        if (cardDetails.number.replace(/\s/g, '').length < 15) {
-            setPaymentError('Invalid card number length.');
-            return;
-        }
-        if (!cardDetails.name || !cardDetails.expiry || cardDetails.cvc.length < 3) {
-            setPaymentError('Please fill out all card details.');
+        if (cart.length === 0) {
+            setPaymentError('Your cart is empty.');
             return;
         }
 
         setIsProcessing(true);
         
         try {
-            // Deduct stock from mainframe
-            for (const item of cart) {
-                // We'd ideally have a dedicated atomic decrement route, but doing a basic PUT here
-                const res = await fetch(`/api/products/${item.id}`);
-                if (res.ok) {
-                    const productData = await res.json();
-                    const newCount = Math.max(0, (productData.inventoryCount || 0) - item.quantity);
-                    await fetch(`/api/products/${item.id}`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ ...productData, inventoryCount: newCount })
-                    });
-                }
+            const res = await fetch('/api/orders/create-checkout-session', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    items: cart,
+                    email: cardDetails.name // using this as a quick email capture
+                })
+            });
+
+            const data = await res.json();
+
+            if (res.ok && data.url) {
+                window.location.href = data.url; // Redirect to secure Stripe portal
+            } else {
+                setPaymentError(data.error || 'Failed to initialize checkout.');
+                setIsProcessing(false);
             }
         } catch (error) {
-            console.error("Stock deduction failed", error);
+            console.error("Checkout failed", error);
+            setPaymentError('Network error. Please try again.');
+            setIsProcessing(false);
         }
-
-        setIsProcessing(false);
-        setStep(3); // Move to Success
-        // Note: In a real app we would clear the cart here, but we'll leave it for visual summary
     };
 
     // Card formatting utility
-    const handleCardNumber = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const val = e.target.value.replace(/\D/g, '');
-        const formatted = val.match(/.{1,4}/g)?.join(' ') || val;
-        if (formatted.length <= 19) setCardDetails({ ...cardDetails, number: formatted });
+    const handleEmail = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setCardDetails({ ...cardDetails, name: e.target.value });
     };
 
-    if (cart.length === 0 && step !== 3) {
+    // Handle Stripe Cancelation Notice
+    if (isCanceled && !paymentError) {
+        setPaymentError('Checkout was canceled. Please try again when you are ready.');
+    }
+
+    if (cart.length === 0 && !isSuccess) {
         return (
             <div className="min-h-screen bg-brand-background flex flex-col items-center justify-center p-6 text-center">
                 <h1 className="text-3xl font-drama mb-4">Your bag is empty</h1>
@@ -98,137 +101,67 @@ export const CheckoutFlow = () => {
                         
                         {/* Step 1 */}
                         <div className="flex flex-col items-center gap-3 bg-brand-background px-4">
-                            <div className={`w-10 h-10 rounded-full flex items-center justify-center font-mono text-sm border-2 transition-colors duration-500 ${step >= 1 ? 'border-brand-primary bg-brand-primary text-brand-background' : 'border-brand-text/20 text-brand-text/40'}`}>
-                                {step > 1 ? <CheckCircle2 size={16} /> : 1}
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center font-mono text-sm border-2 transition-colors duration-500 ${!isSuccess ? 'border-brand-primary bg-brand-primary text-brand-background' : 'border-brand-text/20 text-brand-text/40'}`}>
+                                {!isSuccess ? 1 : <CheckCircle2 size={16} />}
                             </div>
-                            <span className={`text-xs uppercase tracking-widest font-semibold ${step >= 1 ? 'text-brand-primary' : 'text-brand-text/40'}`}>Shipping</span>
-                        </div>
-                        
-                        {/* Step 2 */}
-                        <div className="flex flex-col items-center gap-3 bg-brand-background px-4">
-                            <div className={`w-10 h-10 rounded-full flex items-center justify-center font-mono text-sm border-2 transition-colors duration-500 ${step >= 2 ? 'border-brand-primary bg-brand-primary text-brand-background' : 'border-brand-text/20 text-brand-text/40'}`}>
-                                {step > 2 ? <CheckCircle2 size={16} /> : 2}
-                            </div>
-                            <span className={`text-xs uppercase tracking-widest font-semibold ${step >= 2 ? 'text-brand-primary' : 'text-brand-text/40'}`}>Payment</span>
+                            <span className={`text-xs uppercase tracking-widest font-semibold ${!isSuccess ? 'text-brand-primary' : 'text-brand-text/40'}`}>Checkout</span>
                         </div>
 
-                        {/* Step 3 */}
+                        {/* Step 2 */}
                         <div className="flex flex-col items-center gap-3 bg-brand-background px-4">
-                            <div className={`w-10 h-10 rounded-full flex items-center justify-center font-mono text-sm border-2 transition-colors duration-500 ${step >= 3 ? 'border-brand-primary bg-brand-primary text-brand-background' : 'border-brand-text/20 text-brand-text/40'}`}>
-                                3
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center font-mono text-sm border-2 transition-colors duration-500 ${isSuccess ? 'border-brand-primary bg-brand-primary text-brand-background' : 'border-brand-text/20 text-brand-text/40'}`}>
+                                2
                             </div>
-                            <span className={`text-xs uppercase tracking-widest font-semibold ${step >= 3 ? 'text-brand-primary' : 'text-brand-text/40'}`}>Confirm</span>
+                            <span className={`text-xs uppercase tracking-widest font-semibold ${isSuccess ? 'text-brand-primary' : 'text-brand-text/40'}`}>Confirm</span>
                         </div>
                     </div>
 
                     {/* Step Containers */}
                     <div className="relative">
-                        {/* Step 1 Content */}
-                        {step === 1 && (
-                            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-8">
+                        {/* Step 1 Content */ /* Changed from 1 to direct checkout via Stripe */}
+                        {!isSuccess && (
+                            <form onSubmit={handleAuthorization} className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-8">
                                 <h2 className="text-2xl font-drama mb-6 flex items-center">
                                     <User size={24} className="mr-3 text-brand-accent" />
-                                    Contact & Delivery
+                                    Contact & Secure Checkout
                                 </h2>
 
                                 <div className="space-y-4">
-                                    <input type="email" placeholder="Email address" className="w-full bg-transparent border border-brand-text/20 rounded-xl px-4 py-4 outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-all font-mono text-sm" />
-                                    <input type="text" placeholder="Full name for delivery" className="w-full bg-transparent border border-brand-text/20 rounded-xl px-4 py-4 outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-all font-mono text-sm" />
-                                    
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <input type="text" placeholder="City" className="w-full bg-transparent border border-brand-text/20 rounded-xl px-4 py-4 outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-all font-mono text-sm" />
-                                        <input type="text" placeholder="Postal code" className="w-full bg-transparent border border-brand-text/20 rounded-xl px-4 py-4 outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-all font-mono text-sm" />
-                                    </div>
-                                    <input type="text" placeholder="Full street address & apartment" className="w-full bg-transparent border border-brand-text/20 rounded-xl px-4 py-4 outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-all font-mono text-sm" />
-                                    <input type="tel" placeholder="Phone number" className="w-full bg-transparent border border-brand-text/20 rounded-xl px-4 py-4 outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-all font-mono text-sm" />
+                                    <input 
+                                        type="email" 
+                                        required
+                                        placeholder="Email address for receipt" 
+                                        value={cardDetails.name} // repurposing 'name' for email
+                                        onChange={handleEmail}
+                                        className={`w-full bg-transparent border ${paymentError ? 'border-red-500/50' : 'border-brand-text/20'} rounded-xl px-4 py-4 outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-all font-mono text-sm`} 
+                                    />
                                 </div>
                                 
-                                <Button className="w-full h-14 mt-8" onClick={() => setStep(2)}>
-                                    Continue to Payment
+                                {paymentError && <div className="text-red-500 text-sm font-medium animate-in slide-in-from-top-1 px-2">{paymentError}</div>}
+
+                                <Button type="submit" className="w-full h-14 mt-8 flex items-center justify-center space-x-2" disabled={isProcessing}>
+                                    {isProcessing ? (
+                                        <>
+                                            <Loader2 size={18} className="animate-spin" />
+                                            <span>Redirecting to Stripe...</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <CreditCard size={18} />
+                                            <span>Proceed to Secure Checkout</span>
+                                        </>
+                                    )}
                                 </Button>
-                            </div>
-                        )}
-
-                        {/* Step 2 Content */}
-                        {step === 2 && (
-                            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-8">
-                                <h2 className="text-2xl font-drama mb-6 flex items-center">
-                                    <CreditCard size={24} className="mr-3 text-brand-accent" />
-                                    Payment Initialization
-                                </h2>
-
-                                <div className="bg-brand-text/5 rounded-2xl p-6 border border-brand-text/10 space-y-6">
-                                    <div className="flex items-center space-x-3 mb-4">
-                                        <div className="w-4 h-4 rounded-full border border-brand-primary flex items-center justify-center">
-                                            <div className="w-2 h-2 bg-brand-primary rounded-full"></div>
-                                        </div>
-                                        <span className="font-semibold text-sm">Credit / Debit Card</span>
-                                    </div>
-
-                                    <div className="space-y-4">
-                                        <div className="relative">
-                                            <input 
-                                                type="text" 
-                                                placeholder="Card number" 
-                                                value={cardDetails.number}
-                                                onChange={handleCardNumber}
-                                                className={`w-full bg-brand-background border ${paymentError && !cardDetails.number ? 'border-red-500/50' : 'border-brand-text/20'} rounded-xl px-4 py-4 outline-none focus:border-brand-accent transition-all font-mono text-sm`} 
-                                            />
-                                            <CreditCard size={20} className="absolute right-4 top-1/2 -translate-y-1/2 text-brand-text/40" />
-                                        </div>
-                                        <input 
-                                            type="text" 
-                                            placeholder="Name on card" 
-                                            value={cardDetails.name}
-                                            onChange={(e) => setCardDetails({ ...cardDetails, name: e.target.value })}
-                                            className="w-full bg-brand-background border border-brand-text/20 rounded-xl px-4 py-4 outline-none focus:border-brand-accent transition-all font-mono text-sm" 
-                                        />
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <input 
-                                                type="text" 
-                                                placeholder="MM/YY" 
-                                                maxLength={5}
-                                                value={cardDetails.expiry}
-                                                onChange={(e) => {
-                                                    let val = e.target.value.replace(/\D/g, '');
-                                                    if (val.length >= 2) val = val.substring(0, 2) + '/' + val.substring(2, 4);
-                                                    setCardDetails({ ...cardDetails, expiry: val })
-                                                }}
-                                                className="w-full bg-brand-background border border-brand-text/20 rounded-xl px-4 py-4 outline-none focus:border-brand-accent transition-all font-mono text-sm" 
-                                            />
-                                            <input 
-                                                type="text" 
-                                                placeholder="CVC" 
-                                                maxLength={4}
-                                                value={cardDetails.cvc}
-                                                onChange={(e) => setCardDetails({ ...cardDetails, cvc: e.target.value.replace(/\D/g, '') })}
-                                                className="w-full bg-brand-background border border-brand-text/20 rounded-xl px-4 py-4 outline-none focus:border-brand-accent transition-all font-mono text-sm" 
-                                            />
-                                        </div>
-                                        {paymentError && <div className="text-red-500 text-xs font-medium animate-in slide-in-from-top-1">{paymentError}</div>}
-                                    </div>
-                                </div>
                                 
-                                <div className="flex gap-4 mt-8">
-                                    <Button variant="outline" className="w-1/3 h-14" onClick={() => setStep(1)} disabled={isProcessing}>
-                                        Back
-                                    </Button>
-                                    <Button className="w-2/3 h-14" onClick={handleAuthorization} disabled={isProcessing}>
-                                        {isProcessing ? (
-                                            <span className="flex items-center">
-                                                <Loader2 size={16} className="animate-spin mr-2" />
-                                                Processing Securely...
-                                            </span>
-                                        ) : (
-                                            `Authorize ${formatPrice(total)}`
-                                        )}
-                                    </Button>
+                                <div className="flex items-center justify-center gap-2 mt-6 text-xs text-brand-text/40 font-mono">
+                                    <CheckCircle2 size={12} className="text-green-500" />
+                                    <span>256-bit SSL Encryption via Stripe Inc.</span>
                                 </div>
-                            </div>
+                            </form>
                         )}
 
-                        {/* Step 3 Content */}
-                        {step === 3 && (
+                        {/* Step 2 Content: Success */}
+                        {isSuccess && (
                             <div className="animate-in fade-in zoom-in-95 duration-700 space-y-8 flex flex-col items-center text-center py-12">
                                 <div className="w-24 h-24 bg-brand-text/5 rounded-full flex items-center justify-center mb-4 border border-brand-text/10">
                                     <Truck size={40} className="text-brand-accent" />
