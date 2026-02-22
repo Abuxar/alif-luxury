@@ -14,6 +14,47 @@ import { AdminCustomers } from './AdminCustomers';
 
 export const AdminDashboard = () => {
     const [activeTab, setActiveTab] = useState('overview');
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [passwordInput, setPasswordInput] = useState('');
+
+    const handleLogin = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (passwordInput === (import.meta.env.VITE_ADMIN_PASSWORD || 'alif2026')) {
+            setIsAuthenticated(true);
+        } else {
+            alert("Security Protocol Activated: Incorrect Password.");
+        }
+    };
+
+    if (!isAuthenticated) {
+        return (
+            <div className="min-h-screen bg-[#F5F5F7] flex items-center justify-center font-sans tracking-wide">
+                <form onSubmit={handleLogin} className="bg-white p-10 rounded-[2.5rem] shadow-xl w-full max-w-md flex flex-col items-center border border-gray-100 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <h1 className="font-drama text-5xl font-bold text-brand-primary mb-2">Alif.</h1>
+                    <span className="text-[10px] tracking-widest text-brand-accent uppercase font-mono bg-brand-accent/10 px-3 py-1 rounded-full mb-8">Admin Portal</span>
+                    
+                    <p className="text-sm text-gray-500 mb-6 text-center leading-relaxed">System locked. Enter the master credential to interface with the archive.</p>
+                    
+                    <input 
+                        type="password" 
+                        value={passwordInput}
+                        onChange={(e) => setPasswordInput(e.target.value)}
+                        placeholder="••••••••"
+                        className="w-full bg-gray-50 border border-gray-200 rounded-2xl py-4 px-6 text-lg focus:border-brand-accent focus:ring-2 focus:ring-brand-accent/20 outline-none transition-all mb-6 text-center tracking-[0.5em] font-mono"
+                        autoFocus
+                    />
+                    
+                    <button type="submit" className="w-full bg-brand-primary text-white py-4 rounded-2xl font-medium hover:bg-brand-primary/90 transition-all hover:scale-[1.02] shadow-sm">
+                        Access Mainframe
+                    </button>
+                    
+                    <button type="button" onClick={() => window.location.href = '/'} className="mt-6 text-xs text-gray-400 hover:text-brand-accent transition-colors font-medium tracking-wide">
+                        ← RETURN TO STORE
+                    </button>
+                </form>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-[#F5F5F7] text-gray-900 font-sans flex text-sm">

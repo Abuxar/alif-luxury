@@ -64,6 +64,21 @@ export const AdminProducts = () => {
         setComponents(components.filter((_, i) => i !== index));
     };
 
+    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, field: 'coverImage' | 'image') => {
+        const file = e.target.files?.[0];
+        if (file) {
+            if (file.size > 2 * 1024 * 1024) {
+                 toast.error("Image too large. Please use < 2MB to prevent payload errors.");
+                 return;
+            }
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                 setFormData(prev => ({ ...prev, [field]: reader.result as string }));
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
     const handleSave = async () => {
         if (!formData.title || !formData.sku || !formData.price) {
             toast.error("Please fill required fields (Title, SKU, Price).");
@@ -314,16 +329,36 @@ export const AdminProducts = () => {
                             <div className="space-y-4">
                                 <h3 className="text-sm font-bold uppercase tracking-widest text-brand-primary border-b border-gray-100 pb-2">3. Media Assets</h3>
                                 <div className="grid grid-cols-2 gap-4">
-                                    <div className="border-2 border-dashed border-brand-accent/30 bg-brand-accent/5 rounded-2xl h-48 flex flex-col items-center justify-center text-brand-accent cursor-pointer hover:bg-brand-accent/10 transition-colors">
-                                        <Upload size={24} className="mb-2" />
-                                        <span className="text-sm font-semibold">Upload Base Image</span>
-                                        <span className="text-xs text-brand-accent/60 mt-1">1000x1250px recommended</span>
-                                    </div>
-                                    <div className="border-2 border-dashed border-gray-200 rounded-2xl h-48 flex flex-col items-center justify-center text-gray-400 cursor-pointer hover:bg-gray-50 transition-colors">
-                                        <Upload size={24} className="mb-2" />
-                                        <span className="text-sm font-semibold text-gray-600">Upload Hover Image</span>
-                                        <span className="text-xs text-brand-accent/60 mt-1">Must match base dimensions</span>
-                                    </div>
+                                    <label className="border-2 border-dashed border-brand-accent/30 bg-brand-accent/5 rounded-2xl h-48 flex flex-col items-center justify-center text-brand-accent cursor-pointer hover:bg-brand-accent/10 transition-colors relative overflow-hidden group">
+                                        <input type="file" className="hidden" accept="image/*" onChange={(e) => handleImageUpload(e, 'coverImage')} />
+                                        {formData.coverImage && formData.coverImage !== 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?q=80&w=2000&auto=format&fit=crop' ? (
+                                            <>
+                                                <img src={formData.coverImage} alt="Base preview" className="absolute inset-0 w-full h-full object-cover opacity-50 group-hover:opacity-30 transition-opacity" />
+                                                <div className="z-10 bg-brand-background/80 px-3 py-1 rounded-full text-xs font-semibold">Ready</div>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Upload size={24} className="mb-2" />
+                                                <span className="text-sm font-semibold">Upload Base Image</span>
+                                                <span className="text-xs text-brand-accent/60 mt-1">Under 2MB size limit</span>
+                                            </>
+                                        )}
+                                    </label>
+                                    <label className="border-2 border-dashed border-gray-200 rounded-2xl h-48 flex flex-col items-center justify-center text-gray-400 cursor-pointer hover:bg-gray-50 transition-colors relative overflow-hidden group">
+                                        <input type="file" className="hidden" accept="image/*" onChange={(e) => handleImageUpload(e, 'image')} />
+                                        {formData.image ? (
+                                            <>
+                                                <img src={formData.image} alt="Hover preview" className="absolute inset-0 w-full h-full object-cover opacity-50 group-hover:opacity-30 transition-opacity" />
+                                                <div className="z-10 bg-white/80 px-3 py-1 rounded-full text-xs font-semibold text-gray-700">Ready</div>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Upload size={24} className="mb-2" />
+                                                <span className="text-sm font-semibold text-gray-600">Upload Hover Image</span>
+                                                <span className="text-xs text-gray-400 mt-1">Under 2MB size limit</span>
+                                            </>
+                                        )}
+                                    </label>
                                 </div>
                             </div>
 
