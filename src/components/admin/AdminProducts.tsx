@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Search, MoreVertical, Trash2, X, Upload, Loader2 } from 'lucide-react';
+import { Plus, Search, MoreVertical, Trash2, X, Upload, Loader2, Edit2, PackagePlus } from 'lucide-react';
 import { Button } from '../Button';
 import toast from 'react-hot-toast';
 
@@ -26,6 +26,12 @@ export const AdminProducts = () => {
     const [products, setProducts] = useState<ProductData[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
+    
+    // Action States
+    const [actionMenuId, setActionMenuId] = useState<string | null>(null);
+    const [editingProduct, setEditingProduct] = useState<ProductData | null>(null);
+    const [stockModalProduct, setStockModalProduct] = useState<ProductData | null>(null);
+    const [newStockCount, setNewStockCount] = useState<number>(0);
     
     // Form State
     const [formData, setFormData] = useState<{
@@ -90,6 +96,68 @@ export const AdminProducts = () => {
         }
     };
 
+    const handleDelete = async (id: string, name: string) => {
+        if (confirm(`Are you sure you want to permanently delete "${name}" from the archive?`)) {
+            try {
+                const res = await fetch(`/api/products/${id}`, { method: 'DELETE' });
+                if (res.ok) {
+                    toast.success("Piece removed from archive.");
+                    fetchProducts();
+                } else {
+                    toast.error("Failed to delete piece.");
+                }
+            } catch (error) {
+                console.error(error);
+                toast.error("Network error.");
+            }
+        }
+        setActionMenuId(null);
+    };
+
+    const handleEdit = (product: ProductData) => {
+        setEditingProduct(product);
+        setFormData({
+            title: product.title || product.name || '',
+            sku: product.sku,
+            price: product.price,
+            fabricComposition: product.fabricComposition || product.fabric || '',
+            description: product.description,
+            coverImage: product.coverImage || 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?q=80&w=2000&auto=format&fit=crop',
+            image: product.image,
+            inventoryCount: product.inventoryCount || 0,
+        });
+        setComponents(product.components && product.components.length > 0 ? product.components : [{ name: '', measurement: '' }]);
+        setIsAddModalOpen(true);
+        setActionMenuId(null);
+    };
+
+    const handleQuickStock = (product: ProductData) => {
+        setStockModalProduct(product);
+        setNewStockCount(product.inventoryCount || 0);
+        setActionMenuId(null);
+    };
+
+    const handleSaveStock = async () => {
+        if (!stockModalProduct) return;
+        try {
+            const id = stockModalProduct._id || stockModalProduct.id;
+            const res = await fetch(`/api/products/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ...stockModalProduct, inventoryCount: newStockCount })
+            });
+            if (res.ok) {
+                toast.success("Inventory updated.");
+                setStockModalProduct(null);
+                fetchProducts();
+            } else {
+                toast.error("Failed to update inventory.");
+            }
+        } catch (error) {
+            toast.error("Network error.");
+        }
+    };
+
     const handleSave = async () => {
         if (!formData.title || !formData.sku || !formData.price) {
             toast.error("Please fill required fields (Title, SKU, Price).");
@@ -98,8 +166,11 @@ export const AdminProducts = () => {
 
         setIsSaving(true);
         try {
-            const res = await fetch('/api/products', {
-                method: 'POST',
+            const url = editingProduct ? `/api/products/${editingProduct._id || editingProduct.id}` : '/api/products';
+            const method = editingProduct ? 'PUT' : 'POST';
+
+            const res = await fetch(url, {
+                method: method,
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     ...formData,
@@ -110,8 +181,9 @@ export const AdminProducts = () => {
             });
 
             if (res.ok) {
-                toast.success("Piece archived successfully.");
+                toast.success(editingProduct ? "Piece updated." : "Piece archived successfully.");
                 setIsAddModalOpen(false);
+                setEditingProduct(null);
                 fetchProducts(); // Refresh list
                 // reset form
                 setFormData({ title: '', sku: '', price: '', fabricComposition: '', description: '', coverImage: formData.coverImage, inventoryCount: 1 });
@@ -137,7 +209,12 @@ export const AdminProducts = () => {
                 </div>
                 <Button 
                     className="bg-brand-primary text-white hover:bg-brand-primary/90 rounded-full text-sm h-10 px-5 flex items-center shadow-sm"
-                    onClick={() => setIsAddModalOpen(true)}
+                    onClick={() => {
+                        setEditingProduct(null);
+                        setFormData({ title: '', sku: '', price: '', fabricComposition: '', description: '', coverImage: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?q=80&w=2000&auto=format&fit=crop', inventoryCount: 1 });
+                        setComponents([{ name: '', measurement: '' }]);
+                        setIsAddModalOpen(true);
+                    }}
                 >
                     <Plus size={16} className="mr-2" />
                     Archive New Piece
@@ -220,10 +297,31 @@ export const AdminProducts = () => {
                                             <span className="text-xs text-brand-text/50 font-mono">{(product.inventoryCount || 0)} Units</span>
                                         </div>
                                     </td>
-                                    <td className="py-4 px-6 text-right">
-                                        <button className="text-gray-400 hover:text-brand-primary transition-colors p-1">
+                                    <td className="py-4 px-6 text-right relative">
+                                        <button 
+                                            className="text-gray-400 hover:text-brand-primary transition-colors p-1"
+                                            onClick={() => setActionMenuId(actionMenuId === (product._id || product.id) ? null : (product._id as string || product.id as string || null))}
+                                        >
                                             <MoreVertical size={16} />
                                         </button>
+                                        
+                                        {actionMenuId === (product._id || product.id) && (
+                                            <>
+                                                <div className="fixed inset-0 z-40" onClick={() => setActionMenuId(null)} />
+                                                <div className="absolute right-8 top-10 mt-1 w-48 bg-white rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-gray-100 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                                                    <button className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center transition-colors" onClick={() => handleEdit(product)}>
+                                                        <Edit2 size={14} className="mr-3 text-brand-accent" /> Edit Piece
+                                                    </button>
+                                                    <button className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center transition-colors" onClick={() => handleQuickStock(product)}>
+                                                        <PackagePlus size={14} className="mr-3 text-brand-accent" /> Change Stock
+                                                    </button>
+                                                    <div className="h-px bg-gray-100 my-1"></div>
+                                                    <button className="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 flex items-center transition-colors" onClick={() => handleDelete((product._id || product.id) as string, (product.title || product.name) as string)}>
+                                                        <Trash2 size={14} className="mr-3" /> Delete Piece
+                                                    </button>
+                                                </div>
+                                            </>
+                                        )}
                                     </td>
                                 </tr>
                             ))
@@ -247,8 +345,8 @@ export const AdminProducts = () => {
                         
                         <div className="sticky top-0 bg-white/90 backdrop-blur pb-4 pt-6 px-8 border-b border-gray-100 flex justify-between items-center z-10">
                             <div>
-                                <h2 className="text-2xl font-bold font-sans">Archive New Piece</h2>
-                                <p className="text-sm text-gray-500 mt-1">Add a new unstitched article to the luxury collection.</p>
+                                <h2 className="text-2xl font-bold font-sans">{editingProduct ? 'Edit Archived Piece' : 'Archive New Piece'}</h2>
+                                <p className="text-sm text-gray-500 mt-1">{editingProduct ? 'Modify the attributes of an existing luxury article.' : 'Add a new unstitched article to the luxury collection.'}</p>
                             </div>
                             <button 
                                 onClick={() => setIsAddModalOpen(false)}
@@ -390,6 +488,32 @@ export const AdminProducts = () => {
                             </Button>
                         </div>
 
+                    </div>
+                </div>
+            )}
+
+            {/* Quick Stock Modal */}
+            {stockModalProduct && (
+                <div className="fixed inset-0 z-50 bg-brand-primary/40 backdrop-blur-sm flex items-center justify-center p-4">
+                    <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-sm p-8 relative animate-in zoom-in-95 duration-300 border border-gray-100">
+                        <h2 className="text-xl font-bold font-sans mb-1 pb-4 border-b border-gray-100">Adjust Inventory</h2>
+                        <p className="text-sm text-gray-500 mt-4 mb-6 leading-relaxed">Modify the active stock pool for <span className="font-semibold text-brand-primary">{stockModalProduct.title || stockModalProduct.name}</span>.</p>
+                        
+                        <div className="mb-8">
+                            <label className="block text-xs font-bold tracking-widest text-brand-accent uppercase mb-2">Pieces Remaining</label>
+                            <input 
+                                type="number" 
+                                min="0" 
+                                value={newStockCount} 
+                                onChange={e => setNewStockCount(parseInt(e.target.value) || 0)} 
+                                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-4 text-center text-3xl font-mono focus:border-brand-accent focus:ring-2 focus:ring-brand-accent/20 outline-none transition-all"
+                            />
+                        </div>
+
+                        <div className="flex gap-3">
+                            <Button variant="outline" className="flex-1" onClick={() => setStockModalProduct(null)}>Cancel</Button>
+                            <Button className="flex-1" onClick={handleSaveStock}>Confirm</Button>
+                        </div>
                     </div>
                 </div>
             )}
