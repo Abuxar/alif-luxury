@@ -1,0 +1,21 @@
+
+> alif-luxury@0.0.0 lint
+> eslint .
+
+
+C:\Users\Abuxar\Desktop\vibe coding\alif-luxury\src\components\Features.tsx
+   94:8   warning  React Hook useEffect has a missing dependency: 'messages'. Either include it or remove the dependency array          react-hooks/exhaustive-deps
+  131:13  error    'ctx' is never reassigned. Use 'const' instead                                                                       prefer-const
+  184:25  error    Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+  225:9   error    'ctx' is never reassigned. Use 'const' instead                                                                       prefer-const
+
+C:\Users\Abuxar\Desktop\vibe coding\alif-luxury\src\components\HeroSection.tsx
+  9:9  error  'ctx' is never reassigned. Use 'const' instead  prefer-const
+
+C:\Users\Abuxar\Desktop\vibe coding\alif-luxury\src\components\Protocol.tsx
+   12:9   error  'ctx' is never reassigned. Use 'const' instead  prefer-const
+  153:13  error  'ctx' is never reassigned. Use 'const' instead  prefer-const
+
+Γ£û 7 problems (6 errors, 1 warning)
+  5 errors and 0 warnings potentially fixable with the `--fix` option.
+

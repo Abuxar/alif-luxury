@@ -1,0 +1,84 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-primary: #0d0d12;
+  --color-brand-accent: #c9a84c;
+  --color-brand-background: #faf8f5;
+  --color-brand-text: #2a2a35;
+
+  --font-sans: "Inter", sans-serif;
+  --font-serif: "Playfair Display", serif;
+  --font-mono: "JetBrains Mono", monospace;
+
+  --radius-xl: 1rem;
+  --radius-2xl: 2rem;
+  --radius-3xl: 3rem;
+  --radius-full: 9999px;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-brand-background text-brand-text font-sans antialiased selection:bg-brand-accent selection:text-white;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-sans tracking-tight;
+  }
+
+  .font-drama {
+    @apply font-serif italic;
+  }
+}
+
+@layer utilities {
+  .noise-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 50;
+    opacity: 0.05;
+  }
+
+  .glass-panel {
+    @apply bg-brand-background/60 backdrop-blur-xl border border-brand-text/5 shadow-sm;
+  }
+
+  /* Magnetic button subtle lift */
+  .btn-magnetic {
+    transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    will-change: transform;
+  }
+  .btn-magnetic:hover {
+    transform: scale(1.03);
+  }
+
+  /* Interactive lift for cards/links */
+  .interactive-lift {
+    transition: transform 0.3s ease;
+    will-change: transform;
+  }
+  .interactive-lift:hover {
+    transform: translateY(-2px);
+  }
+
+  /* Remove scrollbars for clean UI */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
