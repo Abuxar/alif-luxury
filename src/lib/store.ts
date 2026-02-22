@@ -19,6 +19,7 @@ interface StoreState {
   activeProductId: string | null;
   setActiveProduct: (id: string | null) => void;
   products: any[]; // eslint-disable-line @typescript-eslint/no-explicit-any
+  isLoadingProducts: boolean;
   loadProducts: () => Promise<void>;
 }
 
@@ -27,13 +28,16 @@ export const useStore = create<StoreState>((set) => ({
   isCartOpen: false,
   activeProductId: null,
   products: [],
+  isLoadingProducts: true,
   
   loadProducts: async () => {
+    set({ isLoadingProducts: true });
     try {
       const data = await fetchProducts();
-      set({ products: data });
+      set({ products: data, isLoadingProducts: false });
     } catch (e) {
       console.error("Failed to load products into store", e);
+      set({ isLoadingProducts: false });
     }
   },
   

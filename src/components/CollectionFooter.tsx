@@ -3,7 +3,7 @@ import { useStore } from '../lib/store';
 import { Loader2 } from 'lucide-react';
 
 export const CollectionSection = () => {
-    const { setActiveProduct, products } = useStore();
+    const { setActiveProduct, products, isLoadingProducts } = useStore();
 
     return (
         <section id="collection" className="py-24 px-6 md:px-12 max-w-7xl mx-auto w-full">
@@ -16,10 +16,14 @@ export const CollectionSection = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 min-h-[400px]">
-                {products.length === 0 ? (
+                {isLoadingProducts ? (
                     <div className="col-span-full flex flex-col items-center justify-center text-brand-text/50">
                         <Loader2 className="animate-spin mb-4" />
                         <p>Syncing Archive with Mainframe...</p>
+                    </div>
+                ) : products.length === 0 ? (
+                    <div className="col-span-full flex flex-col items-center justify-center text-brand-text/50">
+                        <p>The Archive is currently empty.</p>
                     </div>
                 ) : (
                     products.map((product) => (
