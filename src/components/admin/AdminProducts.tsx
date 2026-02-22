@@ -18,6 +18,7 @@ interface ProductData {
     type?: string;
     inventoryCount: number;
     isAvailable?: boolean;
+    components?: { name: string; measurement: string }[];
 }
 
 export const AdminProducts = () => {
