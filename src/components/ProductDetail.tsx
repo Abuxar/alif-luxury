@@ -133,12 +133,7 @@ export const ProductDetail = () => {
                                 {(product.inventoryCount === 0 || product.inventoryCount == null) ? (
                                     <span className="relative z-10">Archive Depleted</span>
                                 ) : (
-                                    <>
-                                        <span className="relative z-10 transition-transform duration-300 group-hover:-translate-y-8">Add to Bag</span>
-                                        <span className="absolute inset-0 flex items-center justify-center translate-y-8 transition-transform duration-300 group-hover:translate-y-0 text-white font-mono text-sm">
-                                            [ Confirm Selection ]
-                                        </span>
-                                    </>
+                                    <span className="relative z-10">Add to Bag</span>
                                 )}
                             </Button>
                             
