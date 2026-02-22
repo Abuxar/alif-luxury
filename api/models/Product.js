@@ -13,6 +13,12 @@ const ProductSchema = new mongoose.Schema({
   fabricComposition: { type: String, required: true },
   careInstructions: { type: String },
   colorFamily: { type: String },
+  category: { 
+    type: String, 
+    required: true, 
+    enum: ['Unstitched', 'Prêt', 'Luxury Formal', 'Accessories'],
+    default: 'Unstitched'
+  },
   occasionTags: [{ type: String }],
   media: [{ type: String }],
   coverImage: { type: String, required: true },

@@ -17,6 +17,7 @@ interface ProductData {
     image?: string;
     type?: string;
     inventoryCount: number;
+    category?: string;
     isAvailable?: boolean;
     components?: { name: string; measurement: string }[];
 }
@@ -44,6 +45,7 @@ export const AdminProducts = () => {
         coverImage: string;
         image?: string;
         inventoryCount: number;
+        category: string;
     }>({
         title: '',
         sku: '',
@@ -52,6 +54,7 @@ export const AdminProducts = () => {
         description: '',
         coverImage: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?q=80&w=2000&auto=format&fit=crop',
         inventoryCount: 1,
+        category: 'Unstitched',
     });
 
     const fetchProducts = async () => {
@@ -126,6 +129,7 @@ export const AdminProducts = () => {
             coverImage: product.coverImage || 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?q=80&w=2000&auto=format&fit=crop',
             image: product.image,
             inventoryCount: product.inventoryCount || 0,
+            category: product.category || 'Unstitched',
         });
         setComponents(product.components && product.components.length > 0 ? product.components : [{ name: '', measurement: '' }]);
         setIsAddModalOpen(true);
@@ -188,7 +192,7 @@ export const AdminProducts = () => {
                 setEditingProduct(null);
                 fetchProducts(); // Refresh list
                 // reset form
-                setFormData({ title: '', sku: '', price: '', fabricComposition: '', description: '', coverImage: formData.coverImage, inventoryCount: 1 });
+                setFormData({ title: '', sku: '', price: '', fabricComposition: '', description: '', coverImage: formData.coverImage, inventoryCount: 1, category: 'Unstitched' });
                 setComponents([{ name: '', measurement: '' }]);
             } else {
                 const err = await res.json();
@@ -213,7 +217,7 @@ export const AdminProducts = () => {
                     className="bg-brand-primary text-white hover:bg-brand-primary/90 rounded-full text-sm h-10 px-5 flex items-center shadow-sm"
                     onClick={() => {
                         setEditingProduct(null);
-                        setFormData({ title: '', sku: '', price: '', fabricComposition: '', description: '', coverImage: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?q=80&w=2000&auto=format&fit=crop', inventoryCount: 1 });
+                        setFormData({ title: '', sku: '', price: '', fabricComposition: '', description: '', coverImage: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?q=80&w=2000&auto=format&fit=crop', inventoryCount: 1, category: 'Unstitched' });
                         setComponents([{ name: '', measurement: '' }]);
                         setIsAddModalOpen(true);
                     }}
@@ -381,10 +385,16 @@ export const AdminProducts = () => {
                                         <input type="number" min="0" value={formData.inventoryCount} onChange={e => setFormData({...formData, inventoryCount: parseInt(e.target.value) || 0})} className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-mono focus:border-brand-accent outline-none" placeholder="10" />
                                     </div>
                                     <div className="md:col-span-2">
-                                        <label className="block text-xs font-semibold text-gray-600 mb-1">Collection Type</label>
-                                        <select className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-brand-accent outline-none">
-                                            <option>3-Piece Unstitched</option>
-                                            <option>2-Piece Unstitched</option>
+                                        <label className="block text-xs font-semibold text-gray-600 mb-1">Product Category</label>
+                                        <select 
+                                            value={formData.category} 
+                                            onChange={e => setFormData({...formData, category: e.target.value})} 
+                                            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-brand-accent outline-none"
+                                        >
+                                            <option value="Unstitched">Unstitched</option>
+                                            <option value="Prêt">Prêt</option>
+                                            <option value="Luxury Formal">Luxury Formal</option>
+                                            <option value="Accessories">Accessories</option>
                                         </select>
                                     </div>
                                 </div>

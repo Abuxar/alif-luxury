@@ -1,32 +1,66 @@
 import { Button } from './Button';
 import { useStore } from '../lib/store';
-import { Loader2 } from 'lucide-react';
+import { Loader2, SlidersHorizontal, Check } from 'lucide-react';
+import { useState, useMemo } from 'react';
+
+const CATEGORIES = ['All', 'Unstitched', 'Prêt', 'Luxury Formal', 'Accessories'];
 
 export const CollectionSection = () => {
     const { setActiveProduct, products, isLoadingProducts } = useStore();
+    const [activeCategory, setActiveCategory] = useState('All');
+    
+    const filteredProducts = useMemo(() => {
+        if (activeCategory === 'All') return products;
+        return products.filter(p => p.category === activeCategory);
+    }, [products, activeCategory]);
 
     return (
         <section id="collection" className="py-24 px-6 md:px-12 max-w-7xl mx-auto w-full">
-            <div className="flex flex-col md:flex-row justify-between items-end mb-16 border-b border-brand-text/10 pb-8">
+            <div className="flex flex-col md:flex-row justify-between items-end mb-12 border-b border-brand-text/10 pb-8">
                 <div>
                     <h2 className="text-4xl md:text-5xl font-bold font-sans tracking-tight mb-2">The Archive</h2>
-                    <p className="text-brand-text/70">Volume 01: Midnight Luxe</p>
+                    <p className="text-brand-text/70">{activeCategory === 'All' ? 'Volume 01: Midnight Luxe' : `${activeCategory} Collection`}</p>
                 </div>
-                <Button variant="outline" className="hidden md:flex mt-4 md:mt-0">View All Pieces</Button>
+                <div className="hidden md:flex items-center gap-4 mt-4 md:mt-0">
+                     <span className="text-sm text-brand-text/50 font-mono tracking-widest uppercase">{filteredProducts.length} Pieces</span>
+                     <Button variant="outline" className="flex items-center gap-2"><SlidersHorizontal size={16}/> Filter & Sort</Button>
+                </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 min-h-[400px]">
+            <div className="flex flex-col lg:flex-row gap-12">
+                {/* Desktop Sidebar Filters */}
+                <aside className="hidden lg:block w-64 shrink-0 space-y-10">
+                    <div>
+                        <h3 className="text-xs font-bold uppercase tracking-widest text-brand-primary mb-6">Categories</h3>
+                        <ul className="space-y-4">
+                            {CATEGORIES.map(cat => (
+                                <li key={cat}>
+                                    <button 
+                                        onClick={() => setActiveCategory(cat)}
+                                        className={`text-sm flex items-center justify-between w-full text-left transition-colors ${activeCategory === cat ? 'text-brand-accent font-medium' : 'text-brand-text/70 hover:text-brand-primary'}`}
+                                    >
+                                        <span>{cat}</span>
+                                        {activeCategory === cat && <Check size={14} />}
+                                    </button>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                </aside>
+
+                {/* Product Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 min-h-[400px] w-full">
                 {isLoadingProducts ? (
                     <div className="col-span-full flex flex-col items-center justify-center text-brand-text/50">
                         <Loader2 className="animate-spin mb-4" />
                         <p>Syncing Archive with Mainframe...</p>
                     </div>
-                ) : products.length === 0 ? (
+                ) : filteredProducts.length === 0 ? (
                     <div className="col-span-full flex flex-col items-center justify-center text-brand-text/50">
                         <p>The Archive is currently empty.</p>
                     </div>
                 ) : (
-                    products.map((product) => (
+                    filteredProducts.map((product) => (
                         <div 
                             key={product._id || product.id} 
                             className="group cursor-pointer interactive-lift flex flex-col"
@@ -74,9 +108,6 @@ export const CollectionSection = () => {
                     ))
                 )}
             </div>
-            
-            <div className="mt-12 text-center md:hidden">
-                <Button variant="outline" fullWidth>View All Pieces</Button>
             </div>
         </section>
     );
