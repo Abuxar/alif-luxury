@@ -1,16 +1,19 @@
 import { useEffect, useRef } from 'react';
 import { useStore } from '../lib/store';
 import { Button } from './Button';
+import { useAuth } from '../lib/authStore';
 import toast from 'react-hot-toast';
-import { X, ArrowLeft, Ruler } from 'lucide-react';
+import { X, ArrowLeft, Ruler, Heart } from 'lucide-react';
 import gsap from 'gsap';
 
 export const ProductDetail = () => {
     const { activeProductId, setActiveProduct, addToCart, toggleCart, products } = useStore();
+    const { user, updateWishlist } = useAuth();
     const containerRef = useRef<HTMLDivElement>(null);
     const contentRef = useRef<HTMLDivElement>(null);
 
     const product = products.find(p => (p._id || p.id) === activeProductId);
+    const isFavorited = user?.wishlist?.includes(product?._id || product?.id || '');
 
     useEffect(() => {
         const ctx = gsap.context(() => {
@@ -46,6 +49,41 @@ export const ProductDetail = () => {
         });
         setActiveProduct(null); // close detail view
         toggleCart(); // open cart
+    };
+
+    const handleToggleWishlist = async () => {
+        if (!user) {
+            toast('Please sign in to save items to your archive.', { icon: '🔒' });
+            setActiveProduct(null);
+            setTimeout(() => {
+                 useStore.getState().toggleAuth();
+            }, 300);
+            return;
+        }
+
+        const productId = product._id || product.id;
+        try {
+            const res = await fetch('/api/users/wishlist', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${user.token}`
+                },
+                body: JSON.stringify({ productId })
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                updateWishlist(data.wishlist);
+                toast.success(isFavorited ? 'Removed from saved archive.' : 'Added to saved archive.', {
+                    icon: '🖤'
+                });
+            } else {
+                toast.error('Failed to update wishlist.');
+            }
+        } catch {
+            toast.error('Network error.');
+        }
     };
 
     return (
@@ -96,8 +134,16 @@ export const ProductDetail = () => {
                         <h1 className="text-4xl md:text-5xl font-drama mb-4 text-brand-primary">
                             {product.title || product.name}
                         </h1>
-                        <div className="text-2xl font-mono mb-8 font-medium">
-                            Rs. {(product.price || 0).toLocaleString()}
+                        <div className="flex items-center justify-between mb-8">
+                            <div className="text-2xl font-mono font-medium">
+                                Rs. {(product.price || 0).toLocaleString()}
+                            </div>
+                            <button 
+                                onClick={handleToggleWishlist}
+                                className={`w-12 h-12 rounded-full flex items-center justify-center border transition-all ${isFavorited ? 'bg-brand-text/5 border-transparent text-red-500' : 'border-brand-text/10 hover:border-brand-text/30 text-brand-text/40 hover:text-brand-text'}`}
+                            >
+                                <Heart size={20} className={isFavorited ? 'fill-current' : ''} />
+                            </button>
                         </div>
 
                         <div className="w-full h-px bg-brand-text/10 mb-8"></div>

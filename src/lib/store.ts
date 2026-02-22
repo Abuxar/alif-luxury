@@ -12,10 +12,12 @@ export interface CartItem {
 interface StoreState {
   cart: CartItem[];
   isCartOpen: boolean;
+  isAuthOpen: boolean;
   addToCart: (item: CartItem) => void;
   removeFromCart: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
   toggleCart: () => void;
+  toggleAuth: () => void;
   activeProductId: string | null;
   setActiveProduct: (id: string | null) => void;
   products: any[]; // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -26,6 +28,7 @@ interface StoreState {
 export const useStore = create<StoreState>((set) => ({
   cart: [],
   isCartOpen: false,
+  isAuthOpen: false,
   activeProductId: null,
   products: [],
   isLoadingProducts: true,
@@ -60,6 +63,8 @@ export const useStore = create<StoreState>((set) => ({
   })),
   
   toggleCart: () => set((state) => ({ isCartOpen: !state.isCartOpen })),
+  
+  toggleAuth: () => set((state) => ({ isAuthOpen: !state.isAuthOpen })),
   
   setActiveProduct: (id) => set({ activeProductId: id }),
 }));

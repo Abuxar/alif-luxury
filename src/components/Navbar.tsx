@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Menu, X, ShoppingBag } from 'lucide-react';
+import { Menu, X, ShoppingBag, User } from 'lucide-react';
 import { Button } from './Button';
 import { useStore } from '../lib/store';
 
 export const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { toggleCart, cart } = useStore();
+  const { toggleCart, toggleAuth, cart } = useStore();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -63,6 +63,9 @@ export const Navbar = () => {
 
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center space-x-4">
+            <button onClick={toggleAuth} className="relative p-2 hover:bg-brand-text/5 rounded-full transition-colors group">
+                <User size={20} className={isScrolled ? 'text-brand-text group-hover:text-brand-accent' : 'text-brand-background group-hover:text-brand-accent'} />
+            </button>
             <button onClick={toggleCart} className="relative p-2 hover:bg-brand-text/5 rounded-full transition-colors group">
                 <ShoppingBag size={20} className={isScrolled ? 'text-brand-text group-hover:text-brand-accent' : 'text-brand-background group-hover:text-brand-accent'} />
                 {cart.length > 0 && (
@@ -81,6 +84,9 @@ export const Navbar = () => {
 
           {/* Mobile Right Controls */}
           <div className="md:hidden flex items-center space-x-2">
+            <button onClick={toggleAuth} className="relative p-2 hover:bg-brand-text/5 rounded-full transition-colors group">
+                <User size={24} className={isScrolled ? 'text-brand-text group-hover:text-brand-accent' : 'text-brand-background group-hover:text-brand-accent'} />
+            </button>
             <button onClick={toggleCart} className="relative p-2 hover:bg-brand-text/5 rounded-full transition-colors">
                 <ShoppingBag size={24} className={isScrolled ? 'text-brand-text' : 'text-brand-background'} />
                 {cart.length > 0 && (
