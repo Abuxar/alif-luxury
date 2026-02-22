@@ -11,6 +11,7 @@ import { AdminDashboard } from './components/admin/AdminDashboard'
 import { AccountDashboard } from './components/AccountDashboard'
 import { SeoHead } from './components/SeoHead'
 import { AnnouncementBar } from './components/AnnouncementBar'
+import { StyleAssistant } from './components/StyleAssistant'
 import { useStore } from './lib/store'
 import { useAuth } from './lib/authStore'
 
@@ -83,6 +84,7 @@ function App() {
     <div className="font-sans text-brand-text bg-brand-background overflow-x-hidden selection:bg-brand-accent/20 selection:text-brand-primary">
       <SeoHead />
       <AnnouncementBar />
+      <StyleAssistant />
       <Toaster 
           position="bottom-right" 
           toastOptions={{
