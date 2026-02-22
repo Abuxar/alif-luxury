@@ -16,6 +16,10 @@ export const ProductDetail = () => {
     const product = products.find(p => (p._id || p.id) === activeProductId);
     const isFavorited = user?.wishlist?.includes(product?._id || product?.id || '');
 
+    const relatedProducts = product ? products
+        .filter(p => p.category === product.category && (p._id || p.id) !== activeProductId)
+        .slice(0, 4) : [];
+
     useEffect(() => {
         const ctx = gsap.context(() => {
             if (activeProductId && product) {
@@ -126,6 +130,7 @@ export const ProductDetail = () => {
                             src={product.coverImage || product.image || ''} 
                             alt={product.title || product.name}
                             className="w-full h-full object-cover"
+                            loading="lazy"
                            />
                            <div className="absolute top-6 left-6 bg-brand-background/80 backdrop-blur-md px-3 py-1.5 rounded-full text-xs font-mono tracking-wider font-semibold border border-brand-text/10">
                                {product.type || 'UNSTITCHED'}
@@ -199,6 +204,38 @@ export const ProductDetail = () => {
                     </div>
 
                 </div>
+
+                {/* Related Products */}
+                {relatedProducts.length > 0 && (
+                    <div className="mt-32 pt-16 border-t border-brand-text/5 pd-anim">
+                        <h3 className="font-drama text-2xl text-brand-primary mb-10 text-center">You May Also Like</h3>
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+                            {relatedProducts.map(rp => (
+                                <div 
+                                    key={rp._id || rp.id} 
+                                    className="group cursor-pointer"
+                                    onClick={() => {
+                                        // Scroll to top of modal and set active product
+                                        if (containerRef.current) containerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+                                        setTimeout(() => setActiveProduct(rp._id || rp.id), 150);
+                                    }}
+                                >
+                                    <div className="aspect-4/5 w-full overflow-hidden bg-brand-text/5 rounded-2xl mb-4 relative">
+                                        <img 
+                                            src={rp.coverImage || rp.image} 
+                                            alt={rp.name || rp.title}
+                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
+                                            loading="lazy"
+                                        />
+                                    </div>
+                                    <h4 className="font-drama text-lg text-brand-primary truncate">{rp.title || rp.name}</h4>
+                                    <p className="text-sm font-mono text-brand-text/60 mt-1">Rs. {(rp.price || 0).toLocaleString()}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
             </div>
         </div>
     );

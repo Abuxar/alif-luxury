@@ -1,6 +1,6 @@
 import { Button } from './Button';
 import { useStore } from '../lib/store';
-import { Loader2, SlidersHorizontal, Check } from 'lucide-react';
+import { SlidersHorizontal, Check } from 'lucide-react';
 import { useState, useMemo } from 'react';
 
 const CATEGORIES = ['All', 'Unstitched', 'Prêt', 'Luxury Formal', 'Accessories'];
@@ -74,10 +74,18 @@ export const CollectionSection = () => {
                 {/* Product Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 min-h-[400px] w-full">
                 {isLoadingProducts ? (
-                    <div className="col-span-full flex flex-col items-center justify-center text-brand-text/50">
-                        <Loader2 className="animate-spin mb-4" />
-                        <p>Syncing Archive with Mainframe...</p>
-                    </div>
+                    Array.from({ length: 6 }).map((_, i) => (
+                        <div key={i} className="flex flex-col animate-pulse">
+                            <div className="relative aspect-3/4 bg-brand-text/5 rounded-2xl mb-4"></div>
+                            <div className="flex justify-between items-start mt-auto pt-4 border-t border-brand-text/5">
+                                <div className="space-y-2 w-full">
+                                    <div className="h-4 bg-brand-text/10 rounded w-3/4"></div>
+                                    <div className="h-3 bg-brand-text/5 rounded w-1/2"></div>
+                                </div>
+                                <div className="h-4 bg-brand-text/10 rounded w-16 ml-4"></div>
+                            </div>
+                        </div>
+                    ))
                 ) : filteredProducts.length === 0 ? (
                     <div className="col-span-full flex flex-col items-center justify-center text-brand-text/50">
                         <p>The Archive is currently empty.</p>
@@ -90,17 +98,18 @@ export const CollectionSection = () => {
                             onClick={() => setActiveProduct(product._id || product.id)}
                         >
                             <div className="relative aspect-3/4 bg-brand-text/5 rounded-2xl overflow-hidden mb-4">
-                                {/* Base Image */}
                                 <img 
                                     src={product.coverImage || product.image || 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?q=80&w=2000'} 
                                     alt={product.title || product.name} 
                                     className="w-full h-full object-cover transition-opacity duration-500 ease-in-out group-hover:opacity-0"
+                                    loading="lazy"
                                 />
                                 {/* Hover Image (Simulated if missing) */}
                                 <img 
                                     src={product.hoverImage || product.coverImage || product.image || 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?q=80&w=2000'} 
                                     alt={`${product.title || product.name} detail`} 
                                     className="absolute inset-0 w-full h-full object-cover opacity-0 transition-opacity ease-in-out group-hover:opacity-100 scale-105 group-hover:scale-100 duration-500"
+                                    loading="lazy"
                                 />
 
                                 {/* Out of Stock Overlay */}

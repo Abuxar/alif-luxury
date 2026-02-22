@@ -1,5 +1,6 @@
 import { Plus, TrendingUp, Clock } from 'lucide-react';
 import { Button } from '../Button';
+import { useStore } from '../../lib/store';
 
 const recentOrders = [
     { id: '#ORD-092', customer: 'Zahra Ahmed', total: 'Rs. 24,500', status: 'Processing', date: '2 hrs ago' },
@@ -7,12 +8,19 @@ const recentOrders = [
     { id: '#ORD-090', customer: 'Fatima Ali', total: 'Rs. 18,900', status: 'Delivered', date: '1 day ago' },
 ];
 
-const lowStockItems = [
-    { name: 'Midnight Serenade', sku: 'ALF-MS-01', stock: 3 },
-    { name: 'Slate Harmony', sku: 'ALF-SH-04', stock: 12 },
-];
-
 export const AdminOverview = () => {
+    const { products } = useStore();
+    
+    // Dynamic Calculations
+    const lowStockItems = products
+        .filter(p => p.inventoryCount != null && p.inventoryCount <= 5)
+        .sort((a,b) => (a.inventoryCount || 0) - (b.inventoryCount || 0))
+        .slice(0, 4);
+
+    const topSellingItems = [...products]
+        .sort((a,b) => (b.price || 0) - (a.price || 0))
+        .slice(0, 3);
+
     return (
         <div className="p-10 max-w-7xl mx-auto w-full animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="flex justify-between items-end mb-8">
@@ -103,29 +111,60 @@ export const AdminOverview = () => {
 
                 {/* Low Stock Alerts */}
                 <div className="bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col">
-                    <div className="p-6 border-b border-gray-100 bg-gray-50/50 rounded-t-2xl">
+                    <div className="p-6 border-b border-gray-100 bg-gray-50/50 rounded-t-2xl flex justify-between items-center">
                         <h3 className="font-semibold text-brand-primary flex items-center">
                             <span className="w-2 h-2 rounded-full bg-orange-500 mr-2"></span>
                             Low Stock Alerts
                         </h3>
+                        <span className="text-xs font-mono bg-orange-100 text-orange-700 px-2 py-1 rounded-full">{lowStockItems.length} Warnings</span>
                     </div>
                     <div className="p-6 flex-1 flex flex-col gap-4">
-                        {lowStockItems.map((item, i) => (
-                            <div key={i} className="flex items-center justify-between p-4 rounded-xl border border-gray-100 hover:border-orange-200 hover:shadow-sm transition-all bg-white cursor-pointer">
-                                <div>
-                                    <div className="font-medium text-brand-primary mb-1">{item.name}</div>
-                                    <div className="text-xs text-gray-500 font-mono">{item.sku}</div>
+                        {lowStockItems.length === 0 ? (
+                            <div className="text-center text-gray-400 text-sm py-4">Inventory healthy. No critical alerts.</div>
+                        ) : (
+                            lowStockItems.map((item) => (
+                                <div key={item._id || item.id} className="flex items-center justify-between p-4 rounded-xl border border-gray-100 hover:border-orange-200 hover:shadow-sm transition-all bg-white cursor-pointer">
+                                    <div>
+                                        <div className="font-medium text-brand-primary mb-1 truncate max-w-[140px]">{item.title || item.name}</div>
+                                        <div className="text-xs text-gray-500 font-mono">{item.sku}</div>
+                                    </div>
+                                    <div className="text-right">
+                                        <div className="text-xl font-bold text-orange-600">{item.inventoryCount}</div>
+                                        <div className="text-[10px] uppercase text-gray-400 font-semibold tracking-wider">Left</div>
+                                    </div>
                                 </div>
-                                <div className="text-right">
-                                    <div className="text-xl font-bold text-orange-600">{item.stock}</div>
-                                    <div className="text-[10px] uppercase text-gray-400 font-semibold tracking-wider">Left</div>
-                                </div>
-                            </div>
-                        ))}
+                            ))
+                        )}
                         
                         <button className="mt-auto w-full py-3 rounded-xl border border-dashed border-gray-300 text-gray-500 font-medium text-xs hover:border-brand-primary hover:text-brand-primary transition-colors flex items-center justify-center">
                             <Plus size={14} className="mr-1" /> Request Restock
                         </button>
+                    </div>
+                </div>
+
+                {/* Top Selling Items (New Widget) */}
+                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col">
+                    <div className="p-6 border-b border-gray-100 bg-gray-50/50 rounded-t-2xl flex justify-between items-center">
+                        <h3 className="font-semibold text-brand-primary flex items-center">
+                            <TrendingUp size={16} className="text-green-500 mr-2" />
+                            Top Selling Archive
+                        </h3>
+                    </div>
+                    <div className="p-6 flex-1 flex flex-col gap-4">
+                        {topSellingItems.map((item, i) => (
+                            <div key={item._id || item.id} className="flex items-center gap-4 p-3 rounded-xl border border-gray-100 hover:border-green-200 hover:shadow-sm transition-all bg-white cursor-pointer">
+                                <div className="w-12 h-16 rounded-md overflow-hidden shrink-0 bg-gray-100">
+                                    <img src={item.coverImage || item.image || ''} alt={item.name} className="w-full h-full object-cover" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <div className="font-medium text-brand-primary mb-0.5 truncate text-sm">{item.title || item.name}</div>
+                                    <div className="text-xs text-gray-500 font-mono">Rs. {(item.price || 0).toLocaleString()}</div>
+                                </div>
+                                <div className="text-right text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded">
+                                    #{i + 1}
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 </div>
 
