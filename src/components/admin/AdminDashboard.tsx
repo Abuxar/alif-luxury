@@ -6,13 +6,15 @@ import {
     Search,
     Bell,
     PackageSearch,
-    Images
+    Images,
+    Settings
 } from 'lucide-react';
 import { AdminOverview } from './AdminOverview';
 import { AdminProducts } from './AdminProducts';
 import { AdminOrders } from './AdminOrders';
 import { AdminCustomers } from './AdminCustomers';
 import { AdminCarousel } from './AdminCarousel';
+import { AdminSettings } from './AdminSettings';
 
 export const AdminDashboard = () => {
     const [activeTab, setActiveTab] = useState('overview');
@@ -104,6 +106,13 @@ export const AdminDashboard = () => {
                         <Users size={18} />
                         <span className="font-medium">Customers</span>
                     </button>
+                    <button 
+                         onClick={() => setActiveTab('settings')}
+                         className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${activeTab === 'settings' ? 'bg-brand-primary text-white shadow-md' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}
+                    >
+                        <Settings size={18} />
+                        <span className="font-medium">Settings</span>
+                    </button>
                 </nav>
 
                 <div className="p-4 border-t border-gray-100">
@@ -144,6 +153,7 @@ export const AdminDashboard = () => {
                 {activeTab === 'carousel' && <AdminCarousel />}
                 {activeTab === 'orders' && <AdminOrders />}
                 {activeTab === 'customers' && <AdminCustomers />}
+                {activeTab === 'settings' && <AdminSettings />}
 
             </main>
         </div>

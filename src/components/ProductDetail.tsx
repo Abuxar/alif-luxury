@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { useStore } from '../lib/store';
 import { Button } from './Button';
 import { useAuth } from '../lib/authStore';
+import { SeoHead } from './SeoHead';
 import toast from 'react-hot-toast';
 import { X, ArrowLeft, Ruler, Heart } from 'lucide-react';
 import gsap from 'gsap';
@@ -91,6 +92,12 @@ export const ProductDetail = () => {
             ref={containerRef}
             className="fixed inset-0 z-60 bg-brand-background/95 backdrop-blur-xl opacity-0 pointer-events-none overflow-y-auto"
         >
+            <SeoHead 
+                title={`${product.title || product.name} | Alif Luxe Archive`}
+                description={product.description}
+                image={product.coverImage || product.image}
+                type="product"
+            />
             <div className="min-h-screen w-full max-w-7xl mx-auto px-6 py-12 flex flex-col relative">
                 
                 {/* Navigation */}

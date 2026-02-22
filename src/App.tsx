@@ -9,6 +9,8 @@ import { AuthDrawer } from './components/AuthDrawer'
 import { CheckoutFlow } from './components/CheckoutFlow'
 import { AdminDashboard } from './components/admin/AdminDashboard'
 import { AccountDashboard } from './components/AccountDashboard'
+import { SeoHead } from './components/SeoHead'
+import { AnnouncementBar } from './components/AnnouncementBar'
 import { useStore } from './lib/store'
 import { useAuth } from './lib/authStore'
 
@@ -37,16 +39,27 @@ function App() {
   }, [loadProducts, checkAuth]);
 
   if (isAdminRoute) {
-    return <AdminDashboard />;
+    return (
+        <>
+            <SeoHead title="Atelier Command | Alif" />
+            <AdminDashboard />
+        </>
+    );
   }
 
   if (isCheckoutRoute) {
-    return <CheckoutFlow />;
+    return (
+        <>
+            <SeoHead title="Secure Checkout | Alif" />
+            <CheckoutFlow />
+        </>
+    );
   }
 
   if (isAccountRoute) {
     return (
       <div className="font-sans text-brand-text bg-brand-background overflow-x-hidden selection:bg-brand-accent/20 selection:text-brand-primary">
+          <SeoHead title="Client Archive | Alif" />
           <Toaster 
               position="bottom-right" 
               toastOptions={{
@@ -68,6 +81,8 @@ function App() {
 
   return (
     <div className="font-sans text-brand-text bg-brand-background overflow-x-hidden selection:bg-brand-accent/20 selection:text-brand-primary">
+      <SeoHead />
+      <AnnouncementBar />
       <Toaster 
           position="bottom-right" 
           toastOptions={{
