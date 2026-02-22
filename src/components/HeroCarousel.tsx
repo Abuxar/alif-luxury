@@ -53,15 +53,22 @@ export const HeroCarousel = () => {
     const scrollPrev = useCallback(() => emblaApi && emblaApi.scrollPrev(), [emblaApi]);
     const scrollNext = useCallback(() => emblaApi && emblaApi.scrollNext(), [emblaApi]);
 
-    if (slides.length === 0) {
-        return null; // Don't render if no slides
-    }
+    const displaySlides = slides.length > 0 ? slides : [{
+        id: 'fallback',
+        title: "Summer Unstitched '26",
+        subtitle: "Light Layers, Bold Statements",
+        linkText: "Shop Collection",
+        linkUrl: "#collection",
+        image: "https://images.unsplash.com/photo-1596462502278-27bfdc403348?q=80&w=2000&auto=format&fit=crop",
+        isActive: true,
+        order: 0
+    }];
 
     return (
         <section className="relative w-full h-[85vh] md:h-[90vh] overflow-hidden group">
             <div className="overflow-hidden h-full w-full" ref={emblaRef}>
                 <div className="flex h-full touch-pan-y">
-                    {slides.map((slide) => (
+                    {displaySlides.map((slide) => (
                         <div key={slide._id || slide.id} className="relative flex-[0_0_100%] h-full w-full">
                             <img 
                                 src={slide.image} 
@@ -113,7 +120,7 @@ export const HeroCarousel = () => {
 
             {/* Dots */}
             <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-3 z-20">
-                {slides.map((_, index) => (
+                {displaySlides.map((_, index) => (
                     <button
                         key={index}
                         onClick={() => emblaApi?.scrollTo(index)}
