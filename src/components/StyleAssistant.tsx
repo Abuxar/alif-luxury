@@ -3,15 +3,28 @@ import { MessageSquare, X, Send, Sparkles } from 'lucide-react';
 import { useStore } from '../lib/store';
 import gsap from 'gsap';
 
+interface Product {
+    _id?: string;
+    id?: string;
+    name?: string;
+    title?: string;
+    price: number;
+    image?: string;
+    coverImage?: string;
+    category?: string;
+    color?: string;
+    description?: string;
+}
+
 interface Message {
     id: string;
     sender: 'ai' | 'user';
     text: string;
-    products?: Record<string, unknown>[];
+    products?: Product[];
 }
 
 export const StyleAssistant = () => {
-    const { products, setActiveProduct } = useStore();
+    const { products, setActiveProduct } = useStore() as { products: Product[], setActiveProduct: (id: string) => void };
     const [isOpen, setIsOpen] = useState(false);
     const [input, setInput] = useState('');
     const [messages, setMessages] = useState<Message[]>([
@@ -55,16 +68,16 @@ export const StyleAssistant = () => {
         // Heuristics Engine
         if (lowerQuery.includes('wedding') || lowerQuery.includes('bridal') || lowerQuery.includes('formal') || lowerQuery.includes('evening')) {
             matchedProducts = products.filter(p => 
-                p.category.toLowerCase().includes('formal') || 
-                p.description.toLowerCase().includes('luxury') ||
+                    p.category?.toLowerCase().includes('formal') || 
+                    p.description?.toLowerCase().includes('luxury') ||
                 p.price > 15000
             ).slice(0, 2);
             responseText = "For elevated evening wear and formal occasions, I recommend exploring our Luxury Formal collection. The intricate hand-embellishments and premium fabrics in these pieces are designed to make a statement.";
         } 
         else if (lowerQuery.includes('casual') || lowerQuery.includes('daily') || lowerQuery.includes('summer') || lowerQuery.includes('lawn')) {
             matchedProducts = products.filter(p => 
-                p.category.toLowerCase().includes('prêt') || 
-                p.category.toLowerCase().includes('unstitched') ||
+                    p.category?.toLowerCase().includes('prêt') || 
+                    p.category?.toLowerCase().includes('unstitched') ||
                 p.price <= 10000
             ).slice(0, 2);
             responseText = "For effortless daily elegance, our Prêt and lighter Unstitched fabrics are perfect. They offer breathable luxury without compromising on our signature aesthetic.";
@@ -72,8 +85,8 @@ export const StyleAssistant = () => {
         else if (lowerQuery.includes('black') || lowerQuery.includes('dark')) {
             matchedProducts = products.filter(p => 
                 p.color?.toLowerCase().includes('black') || 
-                p.name.toLowerCase().includes('obsidian') ||
-                p.name.toLowerCase().includes('midnight')
+                    p.name?.toLowerCase().includes('obsidian') ||
+                    p.name?.toLowerCase().includes('midnight')
             ).slice(0, 2);
             responseText = "Black represents timeless sophistication. I've curated a selection of our darkest, most dramatic pieces tailored to the Midnight Luxe aesthetic.";
         }
@@ -152,7 +165,7 @@ export const StyleAssistant = () => {
                                         {msg.products.map(p => (
                                             <div 
                                                 key={p._id || p.id} 
-                                                onClick={() => { setIsOpen(false); setActiveProduct(p._id || p.id); }}
+                                                onClick={() => { setIsOpen(false); setActiveProduct(p._id || p.id || ''); }}
                                                 className="snap-start shrink-0 w-[180px] bg-white border border-brand-text/10 rounded-xl overflow-hidden cursor-pointer hover:border-brand-accent transition-colors group"
                                             >
                                                 <div className="h-24 overflow-hidden relative">

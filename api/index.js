@@ -2,12 +2,12 @@ import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import Product from './models/Product.js';
-import productRoutes from './routes/productRoutes.js';
-import slideRoutes from './routes/slideRoutes.js';
-import userRoutes from './routes/userRoutes.js';
-import orderRoutes from './routes/orderRoutes.js';
-import settingsRoutes from './routes/settingsRoutes.js';
+import Product from '../server/models/Product.js';
+import productRoutes from '../server/routes/productRoutes.js';
+import slideRoutes from '../server/routes/slideRoutes.js';
+import userRoutes from '../server/routes/userRoutes.js';
+import orderRoutes from '../server/routes/orderRoutes.js';
+import settingsRoutes from '../server/routes/settingsRoutes.js';
 
 dotenv.config();
 
