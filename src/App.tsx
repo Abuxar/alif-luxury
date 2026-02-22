@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react'
 import { Toaster } from 'react-hot-toast';
 import { Navbar } from './components/Navbar'
+import { HeroCarousel } from './components/HeroCarousel'
 import { CollectionSection, Footer } from './components/CollectionFooter'
 import { ProductDetail } from './components/ProductDetail'
+import { CartDrawer } from './components/CartDrawer'
 import { CheckoutFlow } from './components/CheckoutFlow'
 import { AdminDashboard } from './components/admin/AdminDashboard'
-import { CartDrawer } from './components/CartDrawer'
 import { useStore } from './lib/store'
 
 function App() {
@@ -53,7 +54,9 @@ function App() {
       <ProductDetail />
       <Navbar />
       
-      <main className="pt-24 mt-8">
+      <HeroCarousel />
+      
+      <main className="pt-12">
         <CollectionSection />
       </main>
       

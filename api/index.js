@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import productRoutes from './routes/productRoutes.js';
+import slideRoutes from './routes/slideRoutes.js';
 
 dotenv.config();
 
@@ -49,6 +50,7 @@ app.get('/api/health', (req, res) => {
 });
 
 app.use('/api/products', productRoutes);
+app.use('/api/slides', slideRoutes);
 
 // Export the Express app for Vercel Serverless Functions
 export default app;
