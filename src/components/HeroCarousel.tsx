@@ -77,7 +77,7 @@ export const HeroCarousel = () => {
                                 loading="lazy" 
                             />
                             {/* Gradient Overlay */}
-                            <div className="absolute inset-0 bg-gradient-to-t from-brand-background/90 via-brand-background/30 to-transparent pointer-events-none" />
+                            <div className="absolute inset-0 bg-linear-to-t from-brand-background/90 via-brand-background/30 to-transparent pointer-events-none" />
                             <div className="absolute inset-0 bg-black/10 pointer-events-none" />
                             
                             {/* Text Content */}
