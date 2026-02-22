@@ -12,13 +12,19 @@ import { AccountDashboard } from './components/AccountDashboard'
 import { SeoHead } from './components/SeoHead'
 import { AnnouncementBar } from './components/AnnouncementBar'
 import { StyleAssistant } from './components/StyleAssistant'
+import { CustomCursor } from './components/CustomCursor'
+import { Preloader } from './components/Preloader'
 import { useStore } from './lib/store'
 import { useAuth } from './lib/authStore'
+import Lenis from '@studio-freight/lenis'
+import gsap from 'gsap'
+import { motion, AnimatePresence } from 'framer-motion'
 
 function App() {
   const [isAdminRoute, setIsAdminRoute] = useState(false);
   const [isCheckoutRoute, setIsCheckoutRoute] = useState(false);
   const [isAccountRoute, setIsAccountRoute] = useState(false);
+  const [preloaderFinished, setPreloaderFinished] = useState(false);
   const { loadProducts } = useStore();
   const { checkAuth } = useAuth();
 
@@ -34,82 +40,102 @@ function App() {
     loadProducts(); // Fetch live inventory on boot
     checkAuth();    // Validate JWT session
 
+    // Initialize Lenis Smooth Scrolling
+    const lenis = new Lenis({
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), 
+      orientation: 'vertical',
+      gestureOrientation: 'vertical',
+      smoothWheel: true,
+      wheelMultiplier: 1,
+      touchMultiplier: 2,
+    });
+
+    lenis.on('scroll', ScrollTrigger.update);
+
+    // Sync GSAP ticker with Lenis
+    gsap.ticker.add((time) => {
+      lenis.raf(time * 1000);
+    });
+    gsap.ticker.lagSmoothing(0);
+
     handleLocationChange();
     window.addEventListener('popstate', handleLocationChange);
-    return () => window.removeEventListener('popstate', handleLocationChange);
+    return () => {
+        window.removeEventListener('popstate', handleLocationChange);
+        lenis.destroy();
+        gsap.ticker.remove(lenis.raf);
+    };
   }, [loadProducts, checkAuth]);
 
-  if (isAdminRoute) {
-    return (
-        <>
+  return (
+    <AnimatePresence mode="wait">
+      {isAdminRoute ? (
+        <motion.div key="admin" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.5 }}>
             <SeoHead title="Atelier Command | Alif" />
             <AdminDashboard />
-        </>
-    );
-  }
-
-  if (isCheckoutRoute) {
-    return (
-        <>
+        </motion.div>
+      ) : isCheckoutRoute ? (
+        <motion.div key="checkout" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.5 }}>
             <SeoHead title="Secure Checkout | Alif" />
             <CheckoutFlow />
-        </>
-    );
-  }
-
-  if (isAccountRoute) {
-    return (
-      <div className="font-sans text-brand-text bg-brand-background overflow-x-hidden selection:bg-brand-accent/20 selection:text-brand-primary">
-          <SeoHead title="Client Archive | Alif" />
-          <Toaster 
-              position="bottom-right" 
-              toastOptions={{
-                  className: 'font-mono text-sm bg-brand-background text-brand-primary border border-brand-text/10 shadow-xl rounded-xl',
-                  style: {
-                      borderRadius: '12px',
-                      background: '#FAF8F5',
-                      color: '#0D0D12',
-                      border: '1px solid rgba(42, 42, 53, 0.1)',
-                  },
-              }}
-          />
-          <AuthDrawer />
-          <CartDrawer />
-          <AccountDashboard />
-      </div>
-    );
-  }
-
-  return (
-    <div className="font-sans text-brand-text bg-brand-background overflow-x-hidden selection:bg-brand-accent/20 selection:text-brand-primary">
-      <SeoHead />
-      <AnnouncementBar />
-      <StyleAssistant />
-      <Toaster 
-          position="bottom-right" 
-          toastOptions={{
-              className: 'font-mono text-sm bg-brand-background text-brand-primary border border-brand-text/10 shadow-xl rounded-xl',
-              style: {
-                  borderRadius: '12px',
-                  background: '#FAF8F5',
-                  color: '#0D0D12',
-                  border: '1px solid rgba(42, 42, 53, 0.1)',
-              },
-          }}
-      />
-      <AuthDrawer />
-      <CartDrawer />
-      <ProductDetail />
-      <Navbar />
-      
-      <HeroCarousel />
-      
-      <main className="pt-12">
-        <CollectionSection />
-      </main>
-      
-      <Footer />
-    </div>
+        </motion.div>
+      ) : isAccountRoute ? (
+        <motion.div key="account" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.5, ease: 'easeOut' }} className="font-sans text-brand-text bg-brand-background overflow-x-hidden selection:bg-brand-accent/20 selection:text-brand-primary">
+            <SeoHead title="Client Archive | Alif" />
+            <Toaster 
+                position="bottom-right" 
+                toastOptions={{
+                    className: 'font-mono text-sm bg-brand-background text-brand-primary border border-brand-text/10 shadow-xl rounded-xl',
+                    style: {
+                        borderRadius: '12px',
+                        background: '#FAF8F5',
+                        color: '#0D0D12',
+                        border: '1px solid rgba(42, 42, 53, 0.1)',
+                    },
+                }}
+            />
+            <AuthDrawer />
+            <CartDrawer />
+            <AccountDashboard />
+        </motion.div>
+      ) : (
+        <motion.div key="store" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.7, delay: 0.2 }}>
+          <Preloader onComplete={() => setPreloaderFinished(true)} />
+          <CustomCursor />
+          
+          <div className={`font-sans text-brand-text bg-brand-background overflow-x-hidden selection:bg-brand-accent/20 selection:text-brand-primary transition-opacity duration-700 ${preloaderFinished ? 'opacity-100' : 'opacity-0 h-screen overflow-hidden'}`}>
+        <SeoHead />
+        <AnnouncementBar />
+        <StyleAssistant />
+        <Toaster 
+            position="bottom-right" 
+            toastOptions={{
+                className: 'font-mono text-sm bg-brand-background text-brand-primary border border-brand-text/10 shadow-xl rounded-xl',
+                style: {
+                    borderRadius: '12px',
+                    background: '#FAF8F5',
+                    color: '#0D0D12',
+                    border: '1px solid rgba(42, 42, 53, 0.1)',
+                },
+            }}
+        />
+        <AuthDrawer />
+        <CartDrawer />
+        <ProductDetail />
+        <Navbar />
+        
+        <HeroCarousel />
+        
+        <main className="pt-12">
+            <CollectionSection />
+          </main>
+          
+          <Footer />
+        </div>
+      </motion.div>
+      )}
+    </AnimatePresence>
   )
 }
 

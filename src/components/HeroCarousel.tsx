@@ -1,8 +1,12 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import useEmblaCarousel from 'embla-carousel-react';
 import Autoplay from 'embla-carousel-autoplay';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from './Button';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+gsap.registerPlugin(ScrollTrigger);
 
 interface SlideData {
     _id?: string;
@@ -53,7 +57,7 @@ export const HeroCarousel = () => {
     const scrollPrev = useCallback(() => emblaApi && emblaApi.scrollPrev(), [emblaApi]);
     const scrollNext = useCallback(() => emblaApi && emblaApi.scrollNext(), [emblaApi]);
 
-    const displaySlides = slides.length > 0 ? slides : [{
+    const displaySlides = useMemo(() => slides.length > 0 ? slides : [{
         id: 'fallback',
         title: "Summer Unstitched '26",
         subtitle: "Light Layers, Bold Statements",
@@ -62,18 +66,36 @@ export const HeroCarousel = () => {
         image: "https://images.unsplash.com/photo-1596462502278-27bfdc403348?q=80&w=2000&auto=format&fit=crop",
         isActive: true,
         order: 0
-    }];
+    }], [slides]);
+
+    useEffect(() => {
+        const ctx = gsap.context(() => {
+            gsap.utils.toArray<HTMLElement>('.hero-parallax-img').forEach(img => {
+                gsap.to(img, {
+                    yPercent: 20,
+                    ease: "none",
+                    scrollTrigger: {
+                        trigger: img.parentElement,
+                        start: "top top",
+                        end: "bottom top",
+                        scrub: true
+                    }
+                });
+            });
+        });
+        return () => ctx.revert();
+    }, [displaySlides]);
 
     return (
         <section className="relative w-full h-[85vh] md:h-[90vh] overflow-hidden group">
             <div className="overflow-hidden h-full w-full" ref={emblaRef}>
                 <div className="flex h-full touch-pan-y">
                     {displaySlides.map((slide) => (
-                        <div key={slide._id || slide.id} className="relative flex-[0_0_100%] h-full w-full">
+                        <div key={slide._id || slide.id} className="relative flex-[0_0_100%] h-full w-full overflow-hidden">
                             <img 
                                 src={slide.image} 
                                 alt={slide.title} 
-                                className="absolute inset-0 w-full h-full object-cover" 
+                                className="absolute -top-[10%] -bottom-[10%] w-full h-[120%] object-cover hero-parallax-img" 
                                 loading="lazy" 
                             />
                             {/* Gradient Overlay */}
