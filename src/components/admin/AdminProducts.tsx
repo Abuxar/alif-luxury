@@ -155,6 +155,7 @@ export const AdminProducts = () => {
                 toast.error("Failed to update inventory.");
             }
         } catch (error) {
+            console.error(error);
             toast.error("Network error.");
         }
     };
