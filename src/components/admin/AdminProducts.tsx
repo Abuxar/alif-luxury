@@ -27,7 +27,15 @@ export const AdminProducts = () => {
     const [isSaving, setIsSaving] = useState(false);
     
     // Form State
-    const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState<{
+        title: string;
+        sku: string;
+        price: string | number;
+        fabricComposition: string;
+        description: string;
+        coverImage: string;
+        image?: string;
+    }>({
         title: '',
         sku: '',
         price: '',
