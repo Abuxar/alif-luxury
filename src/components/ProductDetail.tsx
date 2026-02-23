@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useStore } from '../lib/store';
 import { Button } from './Button';
 import { useAuth } from '../lib/authStore';
@@ -6,12 +6,15 @@ import { SeoHead } from './SeoHead';
 import toast from 'react-hot-toast';
 import { X, ArrowLeft, Ruler, Heart } from 'lucide-react';
 import gsap from 'gsap';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export const ProductDetail = () => {
     const { activeProductId, setActiveProduct, addToCart, toggleCart, products } = useStore();
     const { user, updateWishlist } = useAuth();
     const containerRef = useRef<HTMLDivElement>(null);
     const contentRef = useRef<HTMLDivElement>(null);
+    const mainCtaRef = useRef<HTMLDivElement>(null);
+    const [showStickyBar, setShowStickyBar] = useState(false);
 
     const product = products.find(p => (p._id || p.id) === activeProductId);
     const isFavorited = user?.wishlist?.includes(product?._id || product?.id || '');
@@ -36,7 +39,23 @@ export const ProductDetail = () => {
                 gsap.to(containerRef.current, { opacity: 0, pointerEvents: 'none', duration: 0.3, ease: 'power2.in' });
             }
         });
-        return () => ctx.revert();
+
+        const ctaObserver = new IntersectionObserver(
+            ([entry]) => {
+                setShowStickyBar(!entry.isIntersecting);
+            },
+            { threshold: 0 }
+        );
+
+        if (mainCtaRef.current) {
+            ctaObserver.observe(mainCtaRef.current);
+        }
+
+        return () => {
+            ctx.revert();
+            ctaObserver.disconnect();
+            setShowStickyBar(false);
+        };
     }, [activeProductId, product]);
 
     if (!product) return null;
@@ -143,9 +162,18 @@ export const ProductDetail = () => {
                         <div className="mb-2 text-xs font-mono tracking-widest text-brand-text/50 uppercase">
                             {product.sku}
                         </div>
-                        <h1 className="text-4xl md:text-5xl font-drama mb-4 text-brand-primary">
-                            {product.title || product.name}
-                        </h1>
+                        <motion.h1 
+                            initial="hidden" 
+                            animate="visible" 
+                            variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { staggerChildren: 0.05, delayChildren: 0.2 } }}}
+                            className="text-4xl md:text-5xl font-drama mb-4 text-brand-primary"
+                        >
+                            {(product.title || product.name || '').split(' ').map((word: string, i: number) => (
+                                <motion.span key={i} variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }} className="inline-block mr-2">
+                                    {word}
+                                </motion.span>
+                            ))}
+                        </motion.h1>
                         <div className="flex items-center justify-between mb-8">
                             <div className="text-2xl font-mono font-medium">
                                 Rs. {(product.price || 0).toLocaleString()}
@@ -182,7 +210,7 @@ export const ProductDetail = () => {
                         </div>
 
                         {/* Actions */}
-                        <div className="mt-auto pt-8">
+                        <div className="mt-auto pt-8" ref={mainCtaRef}>
                             <Button 
                                 onClick={handleAddToCart}
                                 disabled={(product.inventoryCount === 0 || product.inventoryCount == null)}
@@ -207,7 +235,7 @@ export const ProductDetail = () => {
 
                 {/* Related Products */}
                 {relatedProducts.length > 0 && (
-                    <div className="mt-32 pt-16 border-t border-brand-text/5 pd-anim">
+                    <div className="mt-32 pt-16 border-t border-brand-text/5 pd-anim mb-24 lg:mb-0">
                         <h3 className="font-drama text-2xl text-brand-primary mb-10 text-center">You May Also Like</h3>
                         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
                             {relatedProducts.map(rp => (
@@ -237,6 +265,31 @@ export const ProductDetail = () => {
                 )}
 
             </div>
+
+            {/* Sticky Bottom Action Bar */}
+            <AnimatePresence>
+                {showStickyBar && (
+                    <motion.div 
+                        initial={{ y: "100%" }}
+                        animate={{ y: 0 }}
+                        exit={{ y: "100%" }}
+                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                        className="fixed bottom-0 left-0 right-0 z-50 bg-brand-background/90 backdrop-blur-xl border-t border-brand-text/10 p-4 md:px-12 flex justify-between items-center shadow-2xl"
+                    >
+                        <div className="hidden md:block">
+                            <h4 className="font-drama text-lg text-brand-primary truncate max-w-xs">{product.title || product.name}</h4>
+                            <p className="text-sm font-mono text-brand-text/60">Rs. {(product.price || 0).toLocaleString()}</p>
+                        </div>
+                        <Button 
+                            onClick={handleAddToCart}
+                            disabled={(product.inventoryCount === 0 || product.inventoryCount == null)}
+                            className={`h-12 w-full md:w-auto px-8 tracking-wide rounded-full shadow-lg transition-all flex items-center justify-center ${(product.inventoryCount === 0 || product.inventoryCount == null) ? 'bg-brand-text/10 text-brand-text/40 cursor-not-allowed hover:shadow-none' : 'hover:scale-105'}`}
+                        >
+                            {(product.inventoryCount === 0 || product.inventoryCount == null) ? 'Archive Depleted' : 'Add to Bag'}
+                        </Button>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };

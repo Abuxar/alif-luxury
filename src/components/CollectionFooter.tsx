@@ -2,8 +2,99 @@ import { Button } from './Button';
 import { useStore } from '../lib/store';
 import { SlidersHorizontal, Check } from 'lucide-react';
 import { useState, useMemo } from 'react';
+import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 
 const CATEGORIES = ['All', 'Unstitched', 'Prêt', 'Luxury Formal', 'Accessories'];
+
+// Component for Individual Product with 3D Tilt Effect
+const ProductCard = ({ product, onClick }: { 
+    product: { _id?: string; id?: string; title?: string; name?: string; type?: string; price?: number; coverImage?: string; hoverImage?: string; image?: string; inventoryCount?: number }; 
+    onClick: () => void 
+}) => {
+    const x = useMotionValue(0);
+    const y = useMotionValue(0);
+
+    const mouseXSpring = useSpring(x, { stiffness: 300, damping: 20 });
+    const mouseYSpring = useSpring(y, { stiffness: 300, damping: 20 });
+
+    const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], ["7deg", "-7deg"]);
+    const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ["-7deg", "7deg"]);
+
+    const handleMouseMove = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        
+        const width = rect.width;
+        const height = rect.height;
+        
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+        
+        const xPct = mouseX / width - 0.5;
+        const yPct = mouseY / height - 0.5;
+        
+        x.set(xPct);
+        y.set(yPct);
+    };
+
+    const handleMouseLeave = () => {
+        x.set(0);
+        y.set(0);
+    };
+
+    return (
+        <motion.div 
+            className="group cursor-pointer interactive-lift flex flex-col will-change-transform"
+            onClick={onClick}
+            onMouseMove={handleMouseMove}
+            onMouseLeave={handleMouseLeave}
+            style={{
+                rotateX,
+                rotateY,
+                transformPerspective: 1000
+            }}
+        >
+            <div className="relative aspect-3/4 bg-brand-text/5 rounded-2xl overflow-hidden mb-4" style={{ transform: "translateZ(30px)" }}>
+                <img 
+                    src={product.coverImage || product.image || 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?q=80&w=2000'} 
+                    alt={product.title || product.name} 
+                    className="w-full h-full object-cover transition-opacity duration-500 ease-in-out group-hover:opacity-0"
+                    loading="lazy"
+                />
+                {/* Hover Image (Simulated if missing) */}
+                <img 
+                    src={product.hoverImage || product.coverImage || product.image || 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?q=80&w=2000'} 
+                    alt={`${product.title || product.name} detail`} 
+                    className="absolute inset-0 w-full h-full object-cover opacity-0 transition-opacity ease-in-out group-hover:opacity-100 scale-105 group-hover:scale-100 duration-500"
+                    loading="lazy"
+                />
+
+                {/* Out of Stock Overlay */}
+                {(product.inventoryCount === 0 || product.inventoryCount == null) && (
+                    <div className="absolute inset-0 bg-brand-background/40 backdrop-blur-[2px] z-10 flex items-center justify-center">
+                        <div className="bg-brand-background px-4 py-2 rounded-full border border-brand-text/10 text-xs font-mono tracking-widest text-brand-text/60 shadow-lg uppercase font-semibold">
+                            Out of Stock
+                        </div>
+                    </div>
+                )}
+                
+                {/* Quick Add overlay */}
+                <div className="absolute inset-x-0 bottom-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out z-10">
+                    <Button variant="primary" fullWidth size="sm" className="bg-brand-background/90 text-brand-text backdrop-blur-md border border-brand-text/10">
+                        Quick Overview
+                    </Button>
+                </div>
+            </div>
+            
+            <div className="flex justify-between items-start mt-auto pt-4 border-t border-brand-text/5" style={{ transform: "translateZ(20px)" }}>
+                <div>
+                    <h4 className="font-semibold text-brand-text text-lg leading-tight">{product.title || product.name}</h4>
+                    <p className="text-sm text-brand-text/60 mt-1">{product.type || '3-Piece Unstitched'}</p>
+                </div>
+                <span className="font-mono text-sm font-medium whitespace-nowrap ml-2">Rs. {(product.price || 0).toLocaleString()}</span>
+            </div>
+        </motion.div>
+    );
+};
 
 export const CollectionSection = () => {
     const { setActiveProduct, products, isLoadingProducts } = useStore();
@@ -92,51 +183,11 @@ export const CollectionSection = () => {
                     </div>
                 ) : (
                     filteredProducts.map((product) => (
-                        <div 
+                        <ProductCard 
                             key={product._id || product.id} 
-                            className="group cursor-pointer interactive-lift flex flex-col"
-                            onClick={() => setActiveProduct(product._id || product.id)}
-                        >
-                            <div className="relative aspect-3/4 bg-brand-text/5 rounded-2xl overflow-hidden mb-4">
-                                <img 
-                                    src={product.coverImage || product.image || 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?q=80&w=2000'} 
-                                    alt={product.title || product.name} 
-                                    className="w-full h-full object-cover transition-opacity duration-500 ease-in-out group-hover:opacity-0"
-                                    loading="lazy"
-                                />
-                                {/* Hover Image (Simulated if missing) */}
-                                <img 
-                                    src={product.hoverImage || product.coverImage || product.image || 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?q=80&w=2000'} 
-                                    alt={`${product.title || product.name} detail`} 
-                                    className="absolute inset-0 w-full h-full object-cover opacity-0 transition-opacity ease-in-out group-hover:opacity-100 scale-105 group-hover:scale-100 duration-500"
-                                    loading="lazy"
-                                />
-
-                                {/* Out of Stock Overlay */}
-                                {(product.inventoryCount === 0 || product.inventoryCount == null) && (
-                                    <div className="absolute inset-0 bg-brand-background/40 backdrop-blur-[2px] z-10 flex items-center justify-center">
-                                        <div className="bg-brand-background px-4 py-2 rounded-full border border-brand-text/10 text-xs font-mono tracking-widest text-brand-text/60 shadow-lg uppercase font-semibold">
-                                            Out of Stock
-                                        </div>
-                                    </div>
-                                )}
-                                
-                                {/* Quick Add overlay */}
-                                <div className="absolute inset-x-0 bottom-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out z-10">
-                                    <Button variant="primary" fullWidth size="sm" className="bg-brand-background/90 text-brand-text backdrop-blur-md border border-brand-text/10">
-                                        Quick Overview
-                                    </Button>
-                                </div>
-                            </div>
-                            
-                            <div className="flex justify-between items-start mt-auto pt-4 border-t border-brand-text/5">
-                                <div>
-                                    <h4 className="font-semibold text-brand-text text-lg leading-tight">{product.title || product.name}</h4>
-                                    <p className="text-sm text-brand-text/60 mt-1">{product.type || '3-Piece Unstitched'}</p>
-                                </div>
-                                <span className="font-mono text-sm font-medium whitespace-nowrap ml-2">Rs. {(product.price || 0).toLocaleString()}</span>
-                            </div>
-                        </div>
+                            product={product} 
+                            onClick={() => setActiveProduct(product._id || product.id)} 
+                        />
                     ))
                 )}
             </div>
