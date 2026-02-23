@@ -16,12 +16,7 @@ import { CustomCursor } from './components/CustomCursor'
 import { Preloader } from './components/Preloader'
 import { useStore } from './lib/store'
 import { useAuth } from './lib/authStore'
-import Lenis from '@studio-freight/lenis'
-import gsap from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { motion, AnimatePresence } from 'framer-motion'
-
-gsap.registerPlugin(ScrollTrigger);
 
 function App() {
   const [isAdminRoute, setIsAdminRoute] = useState(false);
@@ -43,30 +38,12 @@ function App() {
     loadProducts(); // Fetch live inventory on boot
     checkAuth();    // Validate JWT session
 
-    // Initialize Lenis Smooth Scrolling
-    const lenis = new Lenis({
-      duration: 0.6,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), 
-      orientation: 'vertical',
-      gestureOrientation: 'vertical',
-      wheelMultiplier: 1.3,
-      touchMultiplier: 2,
-    });
 
-    lenis.on('scroll', ScrollTrigger.update);
-
-    // Sync GSAP ticker with Lenis
-    gsap.ticker.add((time) => {
-      lenis.raf(time * 1000);
-    });
-    gsap.ticker.lagSmoothing(0);
 
     handleLocationChange();
     window.addEventListener('popstate', handleLocationChange);
     return () => {
         window.removeEventListener('popstate', handleLocationChange);
-        lenis.destroy();
-        gsap.ticker.remove(lenis.raf);
     };
   }, [loadProducts, checkAuth]);
 
