@@ -18,7 +18,10 @@ import { useStore } from './lib/store'
 import { useAuth } from './lib/authStore'
 import Lenis from '@studio-freight/lenis'
 import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { motion, AnimatePresence } from 'framer-motion'
+
+gsap.registerPlugin(ScrollTrigger);
 
 function App() {
   const [isAdminRoute, setIsAdminRoute] = useState(false);
