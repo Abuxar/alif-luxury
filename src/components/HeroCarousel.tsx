@@ -78,7 +78,7 @@ export const HeroCarousel = () => {
                         trigger: img.parentElement,
                         start: "top top",
                         end: "bottom top",
-                        scrub: true
+                        scrub: 1 // Adding 1 second catch-up delay for ultra-smooth buttery parallax
                     }
                 });
             });

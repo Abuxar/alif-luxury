@@ -45,13 +45,9 @@ function App() {
 
     // Initialize Lenis Smooth Scrolling
     const lenis = new Lenis({
-      duration: 0.8,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), 
-      orientation: 'vertical',
-      gestureOrientation: 'vertical',
+      lerp: 0.15, // Snappier response
+      wheelMultiplier: 1.2,
       smoothWheel: true,
-      wheelMultiplier: 1.5,
-      touchMultiplier: 2,
     });
 
     lenis.on('scroll', ScrollTrigger.update);
