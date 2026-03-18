@@ -1,0 +1,16 @@
+{
+  "name": "alif-monorepo",
+  "private": true,
+  "workspaces": [
+    "alif-luxury",
+    "alif-backend"
+  ],
+  "scripts": {
+    "build": "npm run build --workspace=alif-luxury",
+    "install-all": "npm install"
+  },
+  "devDependencies": {
+    "vite": "^7.3.1",
+    "typescript": "~5.9.3"
+  }
+}
