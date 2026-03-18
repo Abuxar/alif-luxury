@@ -1,0 +1,12 @@
+
+> alif-luxury@0.0.0 build
+> tsc -b && vite build
+
+src/components/admin/AdminDashboard.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/components/Button.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/components/Button.tsx(1,17): error TS1484: 'ButtonHTMLAttributes' is a type and must be imported using a type-only import when 'verbatimModuleSyntax' is enabled.
+src/components/Button.tsx(1,39): error TS1484: 'ReactNode' is a type and must be imported using a type-only import when 'verbatimModuleSyntax' is enabled.
+src/components/CollectionFooter.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/components/Features.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/components/HeroSection.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/components/Navbar.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
