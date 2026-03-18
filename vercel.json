@@ -1,19 +1,13 @@
 {
-  "builds": [
-    {
-      "src": "alif-luxury/package.json",
-      "use": "@vercel/static-build",
-      "config": { "distDir": "dist" }
-    }
-  ],
+  "version": 2,
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "alif-luxury/api/index.js"
+      "destination": "/alif-luxury/api/index.js"
     },
     {
       "source": "/((?!api|images|assets|favicon.ico|vite.svg|.*\\..*).*)",
-      "destination": "alif-luxury/index.html"
+      "destination": "/index.html"
     }
   ]
 }

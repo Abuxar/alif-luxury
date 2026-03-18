@@ -6,7 +6,7 @@
     "alif-backend"
   ],
   "scripts": {
-    "build": "npm run build --workspace=alif-luxury",
+    "build": "cd alif-luxury && npm install && npm run build && cd .. && rm -rf dist && cp -r alif-luxury/dist ./dist",
     "install-all": "npm install"
   },
   "devDependencies": {
