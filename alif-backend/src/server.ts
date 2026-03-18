@@ -12,6 +12,7 @@ app.use(cors());
 app.use(express.json());
 
 import productRoutes from './routes/productRoutes';
+import aiRoutes from './routes/aiRoutes';
 
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/alif-luxury';
 
@@ -21,6 +22,7 @@ app.get('/api/health', (req: Request, res: Response) => {
 });
 
 app.use('/api/products', productRoutes);
+app.use('/api/ai', aiRoutes);
 // app.use('/api/orders', orderRoutes);
 // app.use('/api/users', userRoutes);
 
