@@ -30,14 +30,13 @@ const connectDB = async () => {
   try {
     let MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/alif-luxury';
     
-    // In serverless environments, if there is a DNS problem with SRV from the env var, we fallback to direct cluster connection.
     try {
-        await mongoose.connect(MONGODB_URI);
+        await mongoose.connect(MONGODB_URI, { dbName: 'test' });
     } catch (primaryErr) {
         if (primaryErr.message && primaryErr.message.includes('querySrv')) {
             console.warn('DNS SRV resolution failed, falling back to direct cluster nodes...');
             MONGODB_URI = 'mongodb://admin:Tekken%407@ac-8kwgr8y-shard-00-00.npekzhr.mongodb.net:27017,ac-8kwgr8y-shard-00-01.npekzhr.mongodb.net:27017,ac-8kwgr8y-shard-00-02.npekzhr.mongodb.net:27017/test?ssl=true&authSource=admin&retryWrites=true&w=majority&appName=alif-luxury&tls=true';
-            await mongoose.connect(MONGODB_URI);
+            await mongoose.connect(MONGODB_URI, { dbName: 'test' });
         } else {
             throw primaryErr;
         }
