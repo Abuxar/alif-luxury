@@ -32,13 +32,13 @@ export const ProductDetail = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[60] flex items-center justify-center p-4 md:p-8 bg-brand-primary/40 backdrop-blur-md overflow-y-auto custom-scrollbar"
+          className="fixed inset-0 z-[60] flex items-start justify-center p-4 md:p-8 py-10 md:py-16 bg-brand-primary/80 backdrop-blur-sm overflow-y-auto custom-scrollbar"
         >
           <motion.div
             initial={{ scale: 0.9, y: 20 }}
             animate={{ scale: 1, y: 0 }}
             exit={{ scale: 0.9, y: 20 }}
-            className="bg-brand-background w-full max-w-6xl rounded-3xl overflow-hidden shadow-2xl relative flex flex-col md:flex-row min-h-[80vh]"
+            className="bg-brand-background w-full max-w-6xl rounded-3xl overflow-hidden shadow-2xl relative flex flex-col md:flex-row my-auto"
           >
             {/* Close Button */}
             <button
@@ -49,11 +49,11 @@ export const ProductDetail = () => {
             </button>
 
             {/* Left: Product Media */}
-            <div className="w-full md:w-1/2 bg-brand-text/5 relative aspect-square md:aspect-auto">
+            <div className="w-full md:w-1/2 bg-brand-text/5 relative aspect-square md:aspect-auto md:max-h-[85vh]">
               <img 
                 src={product.image || product.coverImage} 
                 alt={product.title || product.name}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover md:sticky md:top-0"
               />
               <div className="absolute bottom-6 left-6 flex gap-2">
                  <button className="p-3 rounded-full bg-brand-background/80 backdrop-blur-md border border-brand-text/10 text-brand-text hover:text-brand-accent transition-colors">
@@ -66,7 +66,7 @@ export const ProductDetail = () => {
             </div>
 
             {/* Right: Product Info */}
-            <div className="w-full md:w-1/2 p-8 md:p-12 flex flex-col overflow-y-auto custom-scrollbar">
+            <div className="w-full md:w-1/2 p-8 md:p-12 flex flex-col pb-16">
               <div className="mb-8">
                 <div className="flex items-center gap-3 mb-4">
                   <span className="px-3 py-1 rounded-full bg-brand-accent/10 border border-brand-accent/20 text-[10px] font-mono font-bold tracking-widest text-brand-accent uppercase">
