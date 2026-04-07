@@ -8,6 +8,18 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_mock_secret'
 export const createCheckoutSession = async (req, res) => {
   try {
     const { items, email } = req.body;
+    const baseUrl = process.env.CLIENT_URL || req.headers.origin || 'http://localhost:5173';
+
+    // Mock checkout for demo environments without a real Stripe key
+    if (!process.env.STRIPE_SECRET_KEY || process.env.STRIPE_SECRET_KEY === 'sk_test_mock_secret') {
+        setTimeout(() => {
+            res.status(200).json({ 
+                id: 'cs_test_mock123', 
+                url: `${baseUrl}/checkout?success=true&session_id=cs_test_mock` 
+            });
+        }, 1500); // Simulate network delay
+        return;
+    }
 
     const lineItems = items.map((item) => ({
       price_data: {
@@ -26,8 +38,8 @@ export const createCheckoutSession = async (req, res) => {
       line_items: lineItems,
       mode: 'payment',
       customer_email: email,
-      success_url: `${process.env.CLIENT_URL || 'http://localhost:5173'}/checkout?success=true&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.CLIENT_URL || 'http://localhost:5173'}/checkout?canceled=true`,
+      success_url: `${baseUrl}/checkout?success=true&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${baseUrl}/checkout?canceled=true`,
       metadata: {
          // Pass cart items to webhook for stock decrement
          cartItems: JSON.stringify(items.map(i => ({ id: i.id, quantity: i.quantity })))
