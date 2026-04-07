@@ -21,6 +21,7 @@ export const ProductDetail = () => {
         quantity: 1,
         image: product.image || product.coverImage
       });
+      setActiveProduct(null); // Close the modal
       toggleCart();
     }
   };
